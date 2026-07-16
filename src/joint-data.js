@@ -43,10 +43,10 @@
     },
     elbow: {
       name: "肘关节", directions: 1, axisMode: true,
-      note: "界面按临床习惯录入最大屈曲角和伸直欠缺角；查表时自动换算为以屈曲90°为中立位的两个方向活动度。",
+      note: "采用中立位0°法：欠伸填负数，过伸填正数；查表时自动换算为以屈曲90°为中立位的两个方向活动度。",
       motions: [
         ["flexion","最大屈曲",150,135,R.elbowFlex,"elbowFlex"],
-        ["extension","伸直欠缺",0,0,R.elbowExtend,"elbowExtend","欠缺角，完全伸直填0"]
+        ["extension","伸展",0,0,R.elbowExtend,"elbowExtensionSigned","欠伸填负数，过伸填正数"]
       ]
     },
     wrist: {
@@ -66,10 +66,10 @@
     },
     knee: {
       name: "膝关节", directions: 1, axisMode: true, kneeSum: true,
-      note: "伸展按“距完全伸直尚欠多少度”录入正数；查表法将屈曲、伸展丧失值相加并封顶100%。",
+      note: "采用中立位0°法：欠伸填负数，过伸填正数；查表法将屈曲、伸展丧失值相加并封顶100%。",
       motions: [
         ["flexion","最大屈曲",150,120,R.kneeFlex],
-        ["extension","伸直欠缺",0,0,R.kneeDeficit,"identity","欠缺角，完全伸直填0"]
+        ["extension","伸展",0,0,R.kneeDeficit,"extensionDeficitSigned","欠伸填负数，过伸填正数"]
       ]
     },
     ankle: {
@@ -95,14 +95,56 @@
         ["leftLateralFlexion","左侧屈",35,20], ["rightLateralFlexion","右侧屈",35,20],
         ["leftRotation","左旋转",45,30], ["rightRotation","右旋转",45,30]
       ]
+    },
+    hand: {
+      name: "手功能评分", kind: "hand", directions: 0,
+      note: "按《人体损伤致残程度分级》附录C.8计算手部分缺失及手指关节功能障碍分值。",
+      motions: []
     }
   };
+
+  const HAND_SEVERITIES = {
+    nonfunctional: "非功能位强直",
+    functionalHalf: "功能位强直或活动度≤1/2参考值",
+    threeQuarter: "活动度＞1/2、但≤3/4参考值"
+  };
+
+  const HAND_GROUPS = [
+    { id:"thumb", label:"拇指", patterns:[
+      {id:"all",label:"第一掌腕、掌指、指间关节均受累",scores:{nonfunctional:40,functionalHalf:25,threeQuarter:15}},
+      {id:"mcpIp",label:"掌指、指间关节均受累",scores:{nonfunctional:30,functionalHalf:20,threeQuarter:10}},
+      {id:"single",label:"掌指、指间单一关节受累",scores:{nonfunctional:20,functionalHalf:15,threeQuarter:5}}
+    ]},
+    { id:"index", label:"示指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:20,functionalHalf:15,threeQuarter:5}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:15,functionalHalf:10,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}}
+    ]},
+    { id:"middle", label:"中指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:15,functionalHalf:5,threeQuarter:5}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:10,functionalHalf:5,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:5,functionalHalf:0,threeQuarter:0}}
+    ]},
+    { id:"ring", label:"环指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:10,functionalHalf:5,threeQuarter:5}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:5,functionalHalf:0,threeQuarter:0}}
+    ]},
+    { id:"little", label:"小指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:0,functionalHalf:0,threeQuarter:0}}
+    ]},
+    { id:"wrist", label:"腕关节", patterns:[
+      {id:"majorHandLoss",label:"手功能大部分丧失时腕关节受累",scores:{nonfunctional:10,functionalHalf:5,threeQuarter:0}}
+    ]}
+  ];
 
   Object.values(JOINTS).forEach(joint => {
     joint.motions = joint.motions.map(([id,label,upper,lower,bands,transform="identity",hint=""]) => ({id,label,upper,lower,bands,transform,hint}));
   });
 
-  const API = { JOINTS, MUSCLE_LABELS: {1:"≤M1",2:"M2",3:"M3",4:"M4",5:"M5"} };
+  const API = { JOINTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS: {1:"≤M1",2:"M2",3:"M3",4:"M4",5:"M5"} };
   root.JointData = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);
