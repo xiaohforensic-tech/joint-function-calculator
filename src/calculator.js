@@ -95,16 +95,79 @@
     return { missingScore: round(missingScore), dysfunctionScore: round(dysfunctionScore), subtotal: round(subtotal), rows };
   }
 
-  function calculateHand(input, handGroups) {
+  function classifyHandRom(actual, reference, status="limited") {
+    const ref = Number(reference);
+    const measured = Math.max(0, Number(actual));
+    if (status === "nonfunctional") return { severity:"nonfunctional", ratio:0, loss:100, label:"非功能位强直" };
+    if (status === "functionalAnkylosis") return { severity:"functionalHalf", ratio:0, loss:100, label:"功能位强直" };
+    if (!Number.isFinite(ref) || ref <= 0 || !Number.isFinite(measured)) throw new Error("手指活动度和参考值应为有效数字，且参考值大于0");
+    const ratio = measured / ref;
+    const severity = ratio <= 0.5 ? "functionalHalf" : ratio <= 0.75 ? "threeQuarter" : "";
+    const label = ratio <= 0.5 ? "活动度≤1/2参考值" : ratio <= 0.75 ? "活动度＞1/2且≤3/4参考值" : "活动度＞3/4参考值（表C-10不计分）";
+    return { severity, ratio:round(ratio), loss:round(clamp((1-ratio)*100,0,100)), label };
+  }
+
+  function assessHandRomSide(sideInput, handDigits) {
+    return handDigits.flatMap(digit => digit.joints.map(joint => {
+      const item = sideInput.rom?.[digit.id]?.[joint.id] || {};
+      return { digitId:digit.id, digitLabel:digit.label, jointId:joint.id, jointLabel:joint.label,
+        actual:Number(item.actual), reference:Number(item.reference), status:item.status || "limited",
+        ...classifyHandRom(item.actual, item.reference, item.status) };
+    }));
+  }
+
+  function calculateHand(input, handGroups, handDigits=[]) {
     const left = scoreHandSide(input.left, handGroups);
     const right = scoreHandSide(input.right, handGroups);
+    left.romRows = assessHandRomSide(input.left, handDigits);
+    right.romRows = assessHandRomSide(input.right, handDigits);
     const A = Math.max(left.subtotal, right.subtotal);
     const B = Math.min(left.subtotal, right.subtotal);
     const result = A + B * (200 - A) / 200;
     return {
-      method: "hand", left, right, A: round(A), B: round(B), result: round(result),
+      method: "handDisability", left, right, A: round(A), B: round(B), result: round(result),
       formula: `A + B × (200 − A) ÷ 200 = ${round(A)} + ${round(B)} × (200 − ${round(A)}) ÷ 200 = ${round(result)}分`
     };
+  }
+
+  function scoreInjuryHandSide(sideInput, segments) {
+    const rows = segments.map(segment => {
+      const item = sideInput.segments?.[segment.id] || {};
+      const state = item.state || "normal";
+      let score = 0;
+      let formula = "未计分";
+      if (state === "missing" || state === "completeLoss") {
+        score = segment.weight;
+        formula = `${segment.weight}%（该指节/掌骨固定权重）`;
+      } else if (state === "partialMissing") {
+        const missingLength = Number(item.missingLength);
+        const referenceLength = Number(item.referenceLength);
+        if (!(missingLength >= 0) || !(referenceLength > 0) || missingLength > referenceLength) throw new Error(`${segment.label}部分缺失长度应在0至健侧同节长度之间`);
+        score = missingLength / referenceLength * segment.weight;
+        formula = `${round(missingLength)}÷${round(referenceLength)}×${segment.weight}%`;
+      }
+      return {...segment,state,score:round(score),formula};
+    });
+    const segmentScore = rows.reduce((sum,row)=>sum+row.score,0);
+    const palmarSensoryLoss = clamp(Number(sideInput.palmarSensoryLoss)||0,0,100);
+    const sensoryScore = palmarSensoryLoss * 0.5;
+    return {rows,segmentScore:round(segmentScore),palmarSensoryLoss:round(palmarSensoryLoss),sensoryScore:round(sensoryScore),subtotal:round(segmentScore+sensoryScore)};
+  }
+
+  function injuryHandThreshold(result, direct={}) {
+    if (direct.bothHandsCompleteLoss) return {level:"重伤一级直接条款提示",text:"勾选了双手完全缺失或功能完全丧失情形，需核实直接条款。"};
+    if (direct.thumbContracture || direct.threeFingerContracture) return {level:"重伤二级直接条款提示",text:"勾选了不能对指和握物的挛缩情形，需核实直接条款。"};
+    if (result >= 36) return {level:"达到36%阈值",text:"手功能丧失累计值达到重伤二级相关数值阈值。"};
+    if (result >= 16) return {level:"达到16%阈值",text:"手功能丧失累计值达到轻伤一级相关数值阈值。"};
+    if (result >= 4) return {level:"达到4%阈值",text:"手功能丧失累计值达到轻伤二级相关数值阈值。"};
+    return {level:"未达4%阈值",text:"本项累计值未达到手功能丧失4%的相关数值阈值。"};
+  }
+
+  function calculateInjuryHand(input, segments, handDigits=[]) {
+    const left=scoreInjuryHandSide(input.left,segments), right=scoreInjuryHandSide(input.right,segments);
+    left.romRows=assessHandRomSide(input.left,handDigits); right.romRows=assessHandRomSide(input.right,handDigits);
+    const result=round(left.subtotal+right.subtotal);
+    return {method:"handInjury",left,right,result,direct:input.direct||{},formula:`左手 ${left.subtotal}% + 右手 ${right.subtotal}% = ${result}%`};
   }
 
   function handThreshold(result) {
@@ -119,7 +182,7 @@
   }
 
   function contextualThreshold(jointId, appraisalType, result, jointStatus="limited") {
-    if (jointId === "hand") return handThreshold(result);
+    if (jointId === "hand") return appraisalType === "injury" ? injuryHandThreshold(result) : handThreshold(result);
     if (jointId === "cervical" || jointId === "lumbar") {
       return { level: "仅计算", text: "颈、腰椎活动度丧失百分比不自动对应鉴定等级。" };
     }
@@ -143,7 +206,7 @@
     return { level: "未达25%阈值", text: "仅就本项数值未达到四肢任一大关节（踝除外）功能丧失25%的相关阈值。" };
   }
 
-  const API = { calculateTable, calculateDirection, calculateHand, scoreHandSide, handThreshold, contextualThreshold, tableValue, lookup, round };
+  const API = { calculateTable, calculateDirection, calculateHand, calculateInjuryHand, scoreHandSide, scoreInjuryHandSide, classifyHandRom, assessHandRomSide, handThreshold, injuryHandThreshold, contextualThreshold, tableValue, lookup, round };
   root.JointCalculator = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);
