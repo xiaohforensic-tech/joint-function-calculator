@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="关节计算">
+  <rect width="512" height="512" rx="112" fill="#143d38"/>
+  <circle cx="182" cy="256" r="72" fill="#f5f2ea"/>
+  <circle cx="330" cy="256" r="72" fill="#f5f2ea"/>
+  <path d="M224 232h64v48h-64z" fill="#d86f45"/>
+  <path d="M128 112h256v48H128zm0 240h256v48H128z" fill="#d86f45"/>
+</svg>
