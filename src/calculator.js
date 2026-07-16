@@ -7,7 +7,8 @@
   function tableValue(motion, rawValue) {
     const value = Number(rawValue);
     if (motion.transform === "elbowFlex") return Math.max(0, value - 90);
-    if (motion.transform === "elbowExtend") return Math.max(0, 90 - value);
+    if (motion.transform === "elbowExtensionSigned") return Math.max(0, 90 + value);
+    if (motion.transform === "extensionDeficitSigned") return Math.max(0, -value);
     return Math.max(0, value);
   }
 
@@ -53,8 +54,8 @@
     if (joint.axisMode) {
       const flex = joint.motions[0];
       const extension = joint.motions[1];
-      const affectedArc = Number(input.affected[flex.id].degree) - Number(input.affected[extension.id].degree);
-      const refArc = referenceValue(flex) - referenceValue(extension);
+      const affectedArc = Number(input.affected[flex.id].degree) + Number(input.affected[extension.id].degree);
+      const refArc = referenceValue(flex) + referenceValue(extension);
       const loss = refArc > 0 ? clamp((refArc - affectedArc) / refArc * 100, 0, 100) : 0;
       return {
         method: "direction", result: round(loss), affectedArc: round(affectedArc), referenceArc: round(refArc),
@@ -76,7 +77,49 @@
     };
   }
 
-  function contextualThreshold(jointId, appraisalType, result) {
+  function scoreHandSide(sideInput, handGroups) {
+    const missingScore = clamp(Number(sideInput.missingScore) || 0, 0, 100);
+    const rows = handGroups.map(group => {
+      const selected = sideInput.groups?.[group.id] || {};
+      const pattern = group.patterns.find(item => item.id === selected.patternId);
+      const severity = selected.severity;
+      const score = pattern && Object.prototype.hasOwnProperty.call(pattern.scores, severity) ? pattern.scores[severity] : 0;
+      return {
+        groupId: group.id, groupLabel: group.label,
+        patternId: pattern?.id || "", patternLabel: pattern?.label || "未计分",
+        severity: severity || "", score
+      };
+    });
+    const dysfunctionScore = rows.reduce((sum, row) => sum + row.score, 0);
+    const subtotal = clamp(missingScore + dysfunctionScore, 0, 100);
+    return { missingScore: round(missingScore), dysfunctionScore: round(dysfunctionScore), subtotal: round(subtotal), rows };
+  }
+
+  function calculateHand(input, handGroups) {
+    const left = scoreHandSide(input.left, handGroups);
+    const right = scoreHandSide(input.right, handGroups);
+    const A = Math.max(left.subtotal, right.subtotal);
+    const B = Math.min(left.subtotal, right.subtotal);
+    const result = A + B * (200 - A) / 200;
+    return {
+      method: "hand", left, right, A: round(A), B: round(B), result: round(result),
+      formula: `A + B × (200 − A) ÷ 200 = ${round(A)} + ${round(B)} × (200 − ${round(A)}) ÷ 200 = ${round(result)}分`
+    };
+  }
+
+  function handThreshold(result) {
+    if (result >= 150) return { level:"达到四级数值阈值", text:"手功能丧失分值达到150分的数值阈值。" };
+    if (result >= 120) return { level:"达到五级数值阈值", text:"手功能丧失分值达到120分的数值阈值。" };
+    if (result >= 90) return { level:"达到六级数值阈值", text:"手功能丧失分值达到90分的数值阈值。" };
+    if (result >= 60) return { level:"达到七级数值阈值", text:"手功能丧失分值达到60分的数值阈值。" };
+    if (result >= 40) return { level:"达到八级数值阈值", text:"手功能丧失分值达到40分的数值阈值。" };
+    if (result >= 25) return { level:"达到九级数值阈值", text:"手功能丧失分值达到25分的数值阈值。" };
+    if (result >= 10) return { level:"达到十级数值阈值", text:"手功能丧失分值达到10分的数值阈值。" };
+    return { level:"未达10分阈值", text:"仅就本项分值未达到手功能丧失10分的相关数值阈值。" };
+  }
+
+  function contextualThreshold(jointId, appraisalType, result, jointStatus="limited") {
+    if (jointId === "hand") return handThreshold(result);
     if (jointId === "cervical" || jointId === "lumbar") {
       return { level: "仅计算", text: "颈、腰椎活动度丧失百分比不自动对应鉴定等级。" };
     }
@@ -84,6 +127,10 @@
       if (result >= 25) return { level: "达到25%阈值", text: "数值达到《人体损伤程度鉴定标准》轻伤一级相关条款阈值。" };
       if (result >= 10) return { level: "达到10%阈值", text: "数值达到《人体损伤程度鉴定标准》轻伤二级相关条款阈值。" };
       return { level: "未达10%阈值", text: "仅就本项数值未达到四肢大关节功能丧失10%的相关阈值。" };
+    }
+    if (jointStatus === "nonfunctionalAnkylosis") {
+      if (jointId === "ankle") return { level:"九级直接条款提示", text:"存在“一踝关节强直固定于非功能位”的直接条款情形；仍需鉴定人核实固定位置及标准适用。" };
+      return { level:"八级直接条款提示", text:"存在“四肢任一大关节（踝除外）强直固定于非功能位”的直接条款情形；仍需鉴定人核实固定位置及标准适用。" };
     }
     if (jointId === "ankle") {
       if (result >= 75) return { level: "达到75%阈值", text: "达到九级中“一踝关节功能丧失75%以上”的数值阈值。" };
@@ -96,7 +143,7 @@
     return { level: "未达25%阈值", text: "仅就本项数值未达到四肢任一大关节（踝除外）功能丧失25%的相关阈值。" };
   }
 
-  const API = { calculateTable, calculateDirection, contextualThreshold, tableValue, lookup, round };
+  const API = { calculateTable, calculateDirection, calculateHand, scoreHandSide, handThreshold, contextualThreshold, tableValue, lookup, round };
   root.JointCalculator = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);
