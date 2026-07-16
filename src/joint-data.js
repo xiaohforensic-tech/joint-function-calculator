@@ -97,11 +97,35 @@
       ]
     },
     hand: {
-      name: "手功能评分", kind: "hand", directions: 0,
-      note: "按《人体损伤致残程度分级》附录C.8计算手部分缺失及手指关节功能障碍分值。",
+      name: "手功能", kind: "hand", directions: 0,
+      note: "损伤程度与致残程度采用不同规则；手指活动度按实测活动弧与参考活动弧比较。",
       motions: []
     }
   };
+
+  const HAND_DIGITS = [
+    { id:"thumb", label:"拇指", joints:[
+      {id:"mcp",label:"掌指关节（MCP）",lower:70,upper:80},
+      {id:"ip",label:"指间关节（IP）",lower:70,upper:85}
+    ]},
+    ...[
+      ["index","示指"],["middle","中指"],["ring","环指"],["little","小指"]
+    ].map(([id,label]) => ({id,label,joints:[
+      {id:"mcp",label:"掌指关节（MCP）",lower:70,upper:85},
+      {id:"pip",label:"近侧指间关节（PIP）",lower:90,upper:100},
+      {id:"dip",label:"远侧指间关节（DIP）",lower:70,upper:85}
+    ]}))
+  ];
+
+  const INJURY_HAND_SEGMENTS = [
+    {id:"thumb.distal",label:"拇指远节",weight:18},{id:"thumb.proximal",label:"拇指近节",weight:18},
+    {id:"index.distal",label:"示指远节",weight:8},{id:"index.middle",label:"示指中节",weight:7},{id:"index.proximal",label:"示指近节",weight:3},
+    {id:"middle.distal",label:"中指远节",weight:8},{id:"middle.middle",label:"中指中节",weight:7},{id:"middle.proximal",label:"中指近节",weight:3},
+    {id:"ring.distal",label:"环指远节",weight:4},{id:"ring.middle",label:"环指中节",weight:3},{id:"ring.proximal",label:"环指近节",weight:2},
+    {id:"little.distal",label:"小指远节",weight:4},{id:"little.middle",label:"小指中节",weight:3},{id:"little.proximal",label:"小指近节",weight:2},
+    {id:"metacarpal.1",label:"第一掌骨",weight:4},{id:"metacarpal.2",label:"第二掌骨",weight:2},
+    {id:"metacarpal.3",label:"第三掌骨",weight:2},{id:"metacarpal.4",label:"第四掌骨",weight:1},{id:"metacarpal.5",label:"第五掌骨",weight:1}
+  ];
 
   const HAND_SEVERITIES = {
     nonfunctional: "非功能位强直",
@@ -144,7 +168,7 @@
     joint.motions = joint.motions.map(([id,label,upper,lower,bands,transform="identity",hint=""]) => ({id,label,upper,lower,bands,transform,hint}));
   });
 
-  const API = { JOINTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS: {1:"≤M1",2:"M2",3:"M3",4:"M4",5:"M5"} };
+  const API = { JOINTS, HAND_DIGITS, INJURY_HAND_SEGMENTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS: {1:"≤M1",2:"M2",3:"M3",4:"M4",5:"M5"} };
   root.JointData = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);
