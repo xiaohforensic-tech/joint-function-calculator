@@ -190,18 +190,58 @@
     return { level:"未达十级数值阈值", grade:null, text:"仅就本项分值，未达到手功能丧失10分的相关数值阈值。" };
   }
 
+  function functionalRangeLabel(axis) {
+    return axis.min === axis.max ? `${axis.min}°` : `${axis.min}°～${axis.max}°`;
+  }
+
+  function assessFunctionalPosition(rule, values={}, checks={}) {
+    if (!rule || !Array.isArray(rule.axes)) return {state:"unsupported",jointStatus:"ankylosisPending",text:"该部位没有可用的功能位角度规则，需人工复核。",rows:[]};
+    const rows=rule.axes.map(axis=>{
+      const raw=values[axis.id];
+      const value=raw === "" || raw == null ? NaN : Number(raw);
+      if (!Number.isFinite(value)) return {...axis,value:null,state:"missing",range: functionalRangeLabel(axis)};
+      if (value >= axis.min && value <= axis.max) return {...axis,value,state:"inside",range:functionalRangeLabel(axis),distance:0};
+      const distance=value < axis.min ? axis.min-value : value-axis.max;
+      return {...axis,value,state:distance <= (axis.boundary || 0) ? "boundary" : "outside",range:functionalRangeLabel(axis),distance:round(distance)};
+    });
+    const missing=rows.filter(row=>row.state==="missing");
+    const outside=rows.filter(row=>row.state==="outside");
+    const boundary=rows.filter(row=>row.state==="boundary");
+    const unchecked=(rule.checks || []).filter(item=>!checks[item.id]);
+    const positions=rows.filter(row=>row.value != null).map(row=>`${row.label}${round(row.value)}°`).join("、");
+    if (outside.length) {
+      const reasons=outside.map(row=>`${row.label}${round(row.value)}°超出参考${row.range}`).join("；");
+      return {state:"nonfunctionalLikely",jointStatus:"nonfunctionalAnkylosis",rows,positions,text:`角度初判：${reasons}，初判为非功能位。`};
+    }
+    if (missing.length || unchecked.length) {
+      const reasons=[
+        missing.length ? `还需填写${missing.map(row=>row.label).join("、")}` : "",
+        unchecked.length ? `还需核实${unchecked.map(item=>item.label).join("、")}` : ""
+      ].filter(Boolean).join("；");
+      return {state:"insufficient",jointStatus:"ankylosisPending",rows,positions,text:`角度初判：信息不足；${reasons}。`};
+    }
+    if (boundary.length) {
+      const reasons=boundary.map(row=>`${row.label}${round(row.value)}°接近参考边界${row.range}`).join("；");
+      return {state:"borderline",jointStatus:"ankylosisPending",rows,positions,text:`角度初判：${reasons}，处于系统设置的±${Math.max(...boundary.map(row=>row.boundary || 0))}°边界复核区。`};
+    }
+    return {state:"functionalLikely",jointStatus:"functionalAnkylosis",rows,positions,text:`角度初判：${positions}均在临床功能位参考范围内，初判为功能位。`};
+  }
+
   function describeAnkylosis(jointName, side, jointStatus, fixation={}, appraisalType="disability") {
     if (jointStatus === "limited") return "";
-    const statusLabel = jointStatus === "nonfunctionalAnkylosis" ? "非功能位" : "功能位";
-    const motion = fixation.motionLabel || "未注明方向";
-    const degree = fixation.degree === "" || fixation.degree == null ? NaN : Number(fixation.degree);
-    const position = Number.isFinite(degree) ? `${motion}${round(degree)}°位` : `${motion}未填写角度的位置`;
+    const statusLabel = jointStatus === "nonfunctionalAnkylosis" ? "非功能位" : jointStatus === "functionalAnkylosis" ? "功能位" : "性质待复核";
+    const assessment=fixation.assessment;
+    const legacyDegree = fixation.degree === "" || fixation.degree == null ? NaN : Number(fixation.degree);
+    const position = assessment?.positions
+      ? `${assessment.positions}位`
+      : Number.isFinite(legacyDegree) ? `${fixation.motionLabel || "未注明方向"}${round(legacyDegree)}°位` : "尚未完整填写角度的位置";
     const subject = `${side && side !== "不分侧" ? side : ""}${jointName}`;
     const evidence = fixation.evidenceConfirmed ? "已结合被动活动、重复测量及结构资料核实强直固定" : "尚未确认强直固定的多源证据";
     const legal = appraisalType === "injury"
       ? (fixation.injuryDeformityConfirmed ? "并已确认属于强直畸形" : "尚未确认是否属于损伤程度标准所称强直畸形")
-      : `固定位置由鉴定人录入为${statusLabel}`;
-    return `${subject}强直固定于${position}；${evidence}，${legal}。角度仅用于描述固定位置，不单独决定功能位性质。`;
+      : (fixation.reviewMode && fixation.reviewMode !== "auto" ? `经鉴定人复核确认为${statusLabel}${fixation.reviewReason ? `（${fixation.reviewReason}）` : ""}` : `系统角度初判为${statusLabel}`);
+    const angleText=assessment?.text ? `${assessment.text}` : "";
+    return `${subject}强直固定于${position}；${angleText}${evidence}，${legal}。功能位角度属于临床参考，最终性质仍须结合个体功能及多源证据确认。`;
   }
 
   function contextualThreshold(jointId, appraisalType, result, jointStatus="limited", fixation={}) {
@@ -233,7 +273,7 @@
     return { level:"未达十级数值阈值", grade:null, text:"仅就本项数值，未达到四肢任一大关节（踝关节除外）功能丧失25%的相关数值阈值。" };
   }
 
-  const API = { calculateTable, calculateDirection, calculateHand, calculateInjuryHand, scoreHandSide, scoreInjuryHandSide, classifyHandRom, assessHandRomSide, handThreshold, injuryHandThreshold, describeAnkylosis, contextualThreshold, tableValue, lookup, round };
+  const API = { calculateTable, calculateDirection, calculateHand, calculateInjuryHand, scoreHandSide, scoreInjuryHandSide, classifyHandRom, assessHandRomSide, handThreshold, injuryHandThreshold, assessFunctionalPosition, describeAnkylosis, contextualThreshold, tableValue, lookup, round };
   root.JointCalculator = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);

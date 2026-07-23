@@ -32,6 +32,57 @@
     anklePlantar: ranges([[41,Infinity],[31,40],[21,30],[11,20],[-Infinity,10]], ["≥41","31～40","21～30","11～20","≤10"], L5)
   };
 
+  // 功能位角度为临床位置参考，不是鉴定标准给出的法定判定阈值。
+  // 多轴关节须同时满足全部必填轴；boundary 用于标记需人工复核的边界区。
+  const FUNCTIONAL_POSITIONS = {
+    shoulder: {
+      axes: [
+        {id:"flexion",label:"前屈",min:30,max:45,boundary:5},
+        {id:"abduction",label:"外展",min:60,max:90,boundary:5},
+        {id:"externalRotation",label:"贴壁位外旋",min:15,max:20,boundary:5}
+      ],
+      note:"肩为多轴关节，前屈、外展和贴壁位外旋须同时录入。",
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    elbow: {
+      axes:[{id:"flexion",label:"屈曲",min:80,max:90,boundary:5}],
+      note:"还应确认前臂处于旋前、旋后的中立位；双肘同时强直等特殊情形需个案复核。",
+      checks:[{id:"forearmNeutral",label:"前臂旋转位已核实（中立位或符合个案功能需求）"}],
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    wrist: {
+      axes:[
+        {id:"dorsiflexion",label:"背伸",min:30,max:30,boundary:5},
+        {id:"ulnarDeviation",label:"尺偏",min:5,max:10,boundary:5}
+      ],
+      note:"腕为双轴关节，背伸与尺偏须同时录入。",
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    hip: {
+      axes:[
+        {id:"flexion",label:"前屈",min:15,max:20,boundary:5},
+        {id:"abduction",label:"外展",min:10,max:15,boundary:5}
+      ],
+      note:"髋为多轴关节，前屈与外展须同时录入；旋转畸形另行复核。",
+      checks:[{id:"rotationReviewed",label:"内、外旋固定状态已核实，无影响功能的旋转畸形"}],
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    knee: {
+      axes:[{id:"flexion",label:"屈曲",min:5,max:20,boundary:5}],
+      note:"本范围适用于成人；不满14岁者应按伸直位另行复核。",
+      checks:[{id:"adultRule",label:"已确认适用成人功能位参考"}],
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    ankle: {
+      axes:[
+        {id:"sagittal",label:"矢状位（背屈为正、跖屈为负）",min:0,max:0,boundary:5},
+        {id:"coronal",label:"冠状位（外翻为正、内翻为负）",min:0,max:0,boundary:5}
+      ],
+      note:"踝功能位为中立位；须同时排除跖屈/背屈及内翻/外翻固定。",
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    }
+  };
+
   const JOINTS = {
     shoulder: {
       name: "肩关节", directions: 6, note: "内旋、外旋默认采用贴壁位测量。",
@@ -168,7 +219,7 @@
     joint.motions = joint.motions.map(([id,label,upper,lower,bands,transform="identity",hint=""]) => ({id,label,upper,lower,bands,transform,hint}));
   });
 
-  const API = { JOINTS, HAND_DIGITS, INJURY_HAND_SEGMENTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS: {1:"≤M1",2:"M2",3:"M3",4:"M4",5:"M5"} };
+  const API = { JOINTS, FUNCTIONAL_POSITIONS, HAND_DIGITS, INJURY_HAND_SEGMENTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS: {1:"≤M1",2:"M2",3:"M3",4:"M4",5:"M5"} };
   root.JointData = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);
