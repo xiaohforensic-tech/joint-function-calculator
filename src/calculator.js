@@ -95,16 +95,24 @@
     return { missingScore: round(missingScore), dysfunctionScore: round(dysfunctionScore), subtotal: round(subtotal), rows };
   }
 
-  function classifyHandRom(actual, reference, status="limited") {
+  function classifyHandRom(actual, reference, status="limited", fixedDegree=null) {
     const ref = Number(reference);
     const measured = Math.max(0, Number(actual));
-    if (status === "nonfunctional") return { severity:"nonfunctional", ratio:0, loss:100, label:"非功能位强直" };
-    if (status === "functionalAnkylosis") return { severity:"functionalHalf", ratio:0, loss:100, label:"功能位强直" };
     if (!Number.isFinite(ref) || ref <= 0 || !Number.isFinite(measured)) throw new Error("手指活动度和参考值应为有效数字，且参考值大于0");
     const ratio = measured / ref;
+    const loss = round(clamp((1-ratio)*100,0,100));
+    const fixed = fixedDegree === "" || fixedDegree == null ? NaN : Number(fixedDegree);
+    if (status === "nonfunctional") return {
+      severity:"nonfunctional", ratio:round(ratio), loss,
+      label:`活动弧${round(measured)}°；强直固定于${Number.isFinite(fixed) ? `${round(fixed)}°位` : "未填写角度的位置"}，已录入为非功能位`
+    };
+    if (status === "functionalAnkylosis") return {
+      severity:"functionalHalf", ratio:round(ratio), loss,
+      label:`活动弧${round(measured)}°；强直固定于${Number.isFinite(fixed) ? `${round(fixed)}°位` : "未填写角度的位置"}，已录入为功能位`
+    };
     const severity = ratio <= 0.5 ? "functionalHalf" : ratio <= 0.75 ? "threeQuarter" : "";
     const label = ratio <= 0.5 ? "活动度≤1/2参考值" : ratio <= 0.75 ? "活动度＞1/2且≤3/4参考值" : "活动度＞3/4参考值（表C-10不计分）";
-    return { severity, ratio:round(ratio), loss:round(clamp((1-ratio)*100,0,100)), label };
+    return { severity, ratio:round(ratio), loss, label };
   }
 
   function assessHandRomSide(sideInput, handDigits) {
@@ -112,7 +120,8 @@
       const item = sideInput.rom?.[digit.id]?.[joint.id] || {};
       return { digitId:digit.id, digitLabel:digit.label, jointId:joint.id, jointLabel:joint.label,
         actual:Number(item.actual), reference:Number(item.reference), status:item.status || "limited",
-        ...classifyHandRom(item.actual, item.reference, item.status) };
+        fixedDegree:item.fixedDegree === "" || item.fixedDegree == null ? null : Number(item.fixedDegree),
+        ...classifyHandRom(item.actual, item.reference, item.status, item.fixedDegree) };
     }));
   }
 
@@ -155,12 +164,12 @@
   }
 
   function injuryHandThreshold(result, direct={}) {
-    if (direct.bothHandsCompleteLoss) return {level:"重伤一级直接条款提示",text:"勾选了双手完全缺失或功能完全丧失情形，需核实直接条款。"};
-    if (direct.thumbContracture || direct.threeFingerContracture) return {level:"重伤二级直接条款提示",text:"勾选了不能对指和握物的挛缩情形，需核实直接条款。"};
-    if (result >= 36) return {level:"达到36%阈值",text:"手功能丧失累计值达到重伤二级相关数值阈值。"};
-    if (result >= 16) return {level:"达到16%阈值",text:"手功能丧失累计值达到轻伤一级相关数值阈值。"};
-    if (result >= 4) return {level:"达到4%阈值",text:"手功能丧失累计值达到轻伤二级相关数值阈值。"};
-    return {level:"未达4%阈值",text:"本项累计值未达到手功能丧失4%的相关数值阈值。"};
+    if (direct.bothHandsCompleteLoss) return {level:"重伤一级（直接条款）",grade:"重伤一级",text:"已确认双手完全缺失或功能完全丧失，符合重伤一级直接条款。"};
+    if (direct.thumbContracture || direct.threeFingerContracture) return {level:"重伤二级（直接条款）",grade:"重伤二级",text:"已确认不能对指和握物的相应手指挛缩情形，符合重伤二级直接条款。"};
+    if (result >= 36) return {level:"重伤二级",grade:"重伤二级",text:"手功能丧失累计值达到36%，对应重伤二级数值条款。"};
+    if (result >= 16) return {level:"轻伤一级",grade:"轻伤一级",text:"手功能丧失累计值达到16%，对应轻伤一级数值条款。"};
+    if (result >= 4) return {level:"轻伤二级",grade:"轻伤二级",text:"手功能丧失累计值达到4%，对应轻伤二级数值条款。"};
+    return {level:"未达轻伤二级数值阈值",grade:null,text:"本项累计值未达到手功能丧失4%的相关数值阈值。"};
   }
 
   function calculateInjuryHand(input, segments, handDigits=[]) {
@@ -171,42 +180,60 @@
   }
 
   function handThreshold(result) {
-    if (result >= 150) return { level:"达到四级数值阈值", text:"手功能丧失分值达到150分的数值阈值。" };
-    if (result >= 120) return { level:"达到五级数值阈值", text:"手功能丧失分值达到120分的数值阈值。" };
-    if (result >= 90) return { level:"达到六级数值阈值", text:"手功能丧失分值达到90分的数值阈值。" };
-    if (result >= 60) return { level:"达到七级数值阈值", text:"手功能丧失分值达到60分的数值阈值。" };
-    if (result >= 40) return { level:"达到八级数值阈值", text:"手功能丧失分值达到40分的数值阈值。" };
-    if (result >= 25) return { level:"达到九级数值阈值", text:"手功能丧失分值达到25分的数值阈值。" };
-    if (result >= 10) return { level:"达到十级数值阈值", text:"手功能丧失分值达到10分的数值阈值。" };
-    return { level:"未达10分阈值", text:"仅就本项分值未达到手功能丧失10分的相关数值阈值。" };
+    if (result >= 150) return { level:"四级", grade:"四级", text:"手功能丧失分值达到150分，对应四级数值条款。" };
+    if (result >= 120) return { level:"五级", grade:"五级", text:"手功能丧失分值达到120分，对应五级数值条款。" };
+    if (result >= 90) return { level:"六级", grade:"六级", text:"手功能丧失分值达到90分，对应六级数值条款。" };
+    if (result >= 60) return { level:"七级", grade:"七级", text:"手功能丧失分值达到60分，对应七级数值条款。" };
+    if (result >= 40) return { level:"八级", grade:"八级", text:"手功能丧失分值达到40分，对应八级数值条款。" };
+    if (result >= 25) return { level:"九级", grade:"九级", text:"手功能丧失分值达到25分，对应九级数值条款。" };
+    if (result >= 10) return { level:"十级", grade:"十级", text:"手功能丧失分值达到10分，对应十级数值条款。" };
+    return { level:"未达十级数值阈值", grade:null, text:"仅就本项分值，未达到手功能丧失10分的相关数值阈值。" };
   }
 
-  function contextualThreshold(jointId, appraisalType, result, jointStatus="limited") {
+  function describeAnkylosis(jointName, side, jointStatus, fixation={}, appraisalType="disability") {
+    if (jointStatus === "limited") return "";
+    const statusLabel = jointStatus === "nonfunctionalAnkylosis" ? "非功能位" : "功能位";
+    const motion = fixation.motionLabel || "未注明方向";
+    const degree = fixation.degree === "" || fixation.degree == null ? NaN : Number(fixation.degree);
+    const position = Number.isFinite(degree) ? `${motion}${round(degree)}°位` : `${motion}未填写角度的位置`;
+    const subject = `${side && side !== "不分侧" ? side : ""}${jointName}`;
+    const evidence = fixation.evidenceConfirmed ? "已结合被动活动、重复测量及结构资料核实强直固定" : "尚未确认强直固定的多源证据";
+    const legal = appraisalType === "injury"
+      ? (fixation.injuryDeformityConfirmed ? "并已确认属于强直畸形" : "尚未确认是否属于损伤程度标准所称强直畸形")
+      : `固定位置由鉴定人录入为${statusLabel}`;
+    return `${subject}强直固定于${position}；${evidence}，${legal}。角度仅用于描述固定位置，不单独决定功能位性质。`;
+  }
+
+  function contextualThreshold(jointId, appraisalType, result, jointStatus="limited", fixation={}) {
     if (jointId === "hand") return appraisalType === "injury" ? injuryHandThreshold(result) : handThreshold(result);
-    if (jointId === "cervical" || jointId === "lumbar") {
-      return { level: "仅计算", text: "颈、腰椎活动度丧失百分比不自动对应鉴定等级。" };
-    }
+    if (jointId === "cervical" || jointId === "lumbar") return { level:"仅计算，不输出等级", grade:null, text:"颈、腰椎活动度丧失百分比不在本模块中自动对应鉴定等级。" };
     if (appraisalType === "injury") {
-      if (result >= 25) return { level: "达到25%阈值", text: "数值达到《人体损伤程度鉴定标准》轻伤一级相关条款阈值。" };
-      if (result >= 10) return { level: "达到10%阈值", text: "数值达到《人体损伤程度鉴定标准》轻伤二级相关条款阈值。" };
-      return { level: "未达10%阈值", text: "仅就本项数值未达到四肢大关节功能丧失10%的相关阈值。" };
+      if (jointStatus !== "limited" && fixation.injuryDeformityConfirmed && fixation.evidenceConfirmed) {
+        return { level:"重伤二级（直接条款）", grade:"重伤二级", basis:"5.9.2(a)", text:"已确认四肢任一大关节强直畸形，适用《人体损伤程度鉴定标准》5.9.2(a)直接条款。" };
+      }
+      const pending = jointStatus !== "limited" ? "录入的强直状态尚未同时确认多源证据及“强直畸形”，未按直接条款处理；" : "";
+      if (result >= 50) return { level:"重伤二级", grade:"重伤二级", basis:"5.9.2(a)", text:`${pending}四肢任一大关节功能丧失50%以上，达到《人体损伤程度鉴定标准》5.9.2(a)数值条款。` };
+      if (result >= 25) return { level:"轻伤一级", grade:"轻伤一级", basis:"5.9.3(a)", text:`${pending}四肢任一大关节功能丧失25%以上，达到《人体损伤程度鉴定标准》5.9.3(a)数值条款。` };
+      if (result >= 10) return { level:"轻伤二级", grade:"轻伤二级", basis:"5.9.4(a)", text:`${pending}四肢任一大关节功能丧失10%以上，达到《人体损伤程度鉴定标准》5.9.4(a)数值条款。` };
+      return { level:jointStatus !== "limited" ? "强直待核实；未达轻伤二级数值阈值" : "未达轻伤二级数值阈值", grade:null, text:`${pending}仅就本项数值，未达到四肢任一大关节功能丧失10%的相关数值阈值。` };
     }
     if (jointStatus === "nonfunctionalAnkylosis") {
-      if (jointId === "ankle") return { level:"九级直接条款提示", text:"存在“一踝关节强直固定于非功能位”的直接条款情形；仍需鉴定人核实固定位置及标准适用。" };
-      return { level:"八级直接条款提示", text:"存在“四肢任一大关节（踝除外）强直固定于非功能位”的直接条款情形；仍需鉴定人核实固定位置及标准适用。" };
+      if (!fixation.evidenceConfirmed) return { level:"非功能位强直待核实", grade:null, text:"已录入非功能位强直，但尚未确认被动活动、重复测量及结构资料等证据，暂不自动输出伤残等级。" };
+      if (jointId === "ankle") return { level:"八级（直接条款）", grade:"八级", basis:"5.8.6(9)", text:"一踝关节强直固定于非功能位，适用《人体损伤致残程度分级》5.8.6(9)直接条款。" };
+      return { level:"七级（直接条款）", grade:"七级", basis:"5.7.6(3)", text:"四肢任一大关节（踝关节除外）强直固定于非功能位，适用《人体损伤致残程度分级》5.7.6(3)直接条款。" };
     }
     if (jointId === "ankle") {
-      if (result >= 75) return { level: "达到75%阈值", text: "达到九级中“一踝关节功能丧失75%以上”的数值阈值。" };
-      if (result >= 50) return { level: "达到50%阈值", text: "达到十级中“一踝关节功能丧失50%以上”的数值阈值。" };
-      return { level: "未达50%阈值", text: "仅就本项数值未达到一踝关节功能丧失50%的相关阈值。" };
+      if (result >= 75) return { level:"九级", grade:"九级", text:"一踝关节功能丧失75%以上，达到九级相关数值条款。" };
+      if (result >= 50) return { level:"十级", grade:"十级", text:"一踝关节功能丧失50%以上，达到十级相关数值条款。" };
+      return { level:"未达十级数值阈值", grade:null, text:"仅就本项数值，未达到一踝关节功能丧失50%的相关数值阈值。" };
     }
-    if (result >= 75) return { level: "达到75%阈值", text: "达到八级中“四肢任一大关节（踝除外）功能丧失75%以上”的数值阈值。" };
-    if (result >= 50) return { level: "达到50%阈值", text: "达到九级中“四肢任一大关节（踝除外）功能丧失50%以上”的数值阈值。" };
-    if (result >= 25) return { level: "达到25%阈值", text: "达到十级中“四肢任一大关节（踝除外）功能丧失25%以上”的数值阈值。" };
-    return { level: "未达25%阈值", text: "仅就本项数值未达到四肢任一大关节（踝除外）功能丧失25%的相关阈值。" };
+    if (result >= 75) return { level:"八级", grade:"八级", text:"四肢任一大关节（踝关节除外）功能丧失75%以上，达到八级相关数值条款。" };
+    if (result >= 50) return { level:"九级", grade:"九级", text:"四肢任一大关节（踝关节除外）功能丧失50%以上，达到九级相关数值条款。" };
+    if (result >= 25) return { level:"十级", grade:"十级", text:"四肢任一大关节（踝关节除外）功能丧失25%以上，达到十级相关数值条款。" };
+    return { level:"未达十级数值阈值", grade:null, text:"仅就本项数值，未达到四肢任一大关节（踝关节除外）功能丧失25%的相关数值阈值。" };
   }
 
-  const API = { calculateTable, calculateDirection, calculateHand, calculateInjuryHand, scoreHandSide, scoreInjuryHandSide, classifyHandRom, assessHandRomSide, handThreshold, injuryHandThreshold, contextualThreshold, tableValue, lookup, round };
+  const API = { calculateTable, calculateDirection, calculateHand, calculateInjuryHand, scoreHandSide, scoreInjuryHandSide, classifyHandRom, assessHandRomSide, handThreshold, injuryHandThreshold, describeAnkylosis, contextualThreshold, tableValue, lookup, round };
   root.JointCalculator = API;
   if (typeof module !== "undefined" && module.exports) module.exports = API;
 })(typeof window !== "undefined" ? window : globalThis);
