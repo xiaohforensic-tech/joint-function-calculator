@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#143d38">
+  <meta name="theme-color" content="#f7f4ed">
   <meta name="description" content="法医临床四肢大关节功能丧失百分比辅助计算与记录工具">
   <meta name="application-name" content="关节计算">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +14,7 @@
   <title>关节功能丧失辅助计算</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=1.6.0">
+  <link rel="stylesheet" href="styles.css?v=1.7.0">
 </head>
 <body>
   <header class="topbar no-print">
@@ -24,7 +24,7 @@
   </header>
 
   <main>
-    <section class="hero no-print"><div><h1>关节功能丧失计算</h1><p>输入活动度，自动计算并生成记录。</p></div></section>
+    <section class="hero no-print"><div><span class="eyebrow">FORENSIC CLINICAL TOOL</span><h1>关节功能丧失计算</h1><p>记录测量，核对规则，生成可复核的计算记录。</p></div></section>
 
     <div class="layout">
       <section class="workspace no-print">
@@ -64,7 +64,7 @@
           <span class="result-label">计算结果</span><h3>等待计算</h3><p>填写角度后生成记录</p>
         </div>
         <div class="card compact"><h3>本机记录</h3><div id="historyList" class="history-list"><p class="muted">尚无已保存记录</p></div></div>
-        <div class="card compact source-card"><h3>计算依据</h3><p>SF/T 0111—2021、SF/T 0096—2021及相关鉴定标准</p><p class="version">规则版本 1.6.0</p></div>
+        <div class="card compact source-card"><h3>计算依据</h3><p>《人体损伤程度鉴定标准》《人体损伤致残程度分级》、SF/T 0111—2021、SF/T 0096—2021</p><p class="version">规则版本 1.7.0</p></div>
       </aside>
     </div>
 
@@ -74,8 +74,8 @@
   <footer class="no-print"><p>计算结果仅供辅助复核</p></footer>
   <div id="toast" class="toast no-print" role="status"></div>
 
-  <script src="src/joint-data.js?v=1.6.0"></script>
-  <script src="src/calculator.js?v=1.6.0"></script>
-  <script src="app.js?v=1.6.0"></script>
+  <script src="src/joint-data.js?v=1.7.0"></script>
+  <script src="src/calculator.js?v=1.7.0"></script>
+  <script src="app.js?v=1.7.0"></script>
 </body>
 </html>

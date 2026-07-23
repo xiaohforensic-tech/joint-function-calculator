@@ -66,14 +66,15 @@
       <div><strong>${digit.label}</strong><small>${joint.label}</small></div>
       <div><input type="number" min="0" max="180" step="0.1" required inputmode="decimal" name="hand.${sideId}.rom.${digit.id}.${joint.id}.actual" value="${joint.upper}" aria-label="${digit.label}${joint.label}实测活动弧"></div>
       <div><input type="number" min="0.1" max="180" step="0.1" required inputmode="decimal" name="hand.${sideId}.rom.${digit.id}.${joint.id}.reference" value="${joint.upper}" aria-label="${digit.label}${joint.label}参考活动弧"></div>
-      <div><select name="hand.${sideId}.rom.${digit.id}.${joint.id}.status"><option value="limited">活动受限</option><option value="functionalAnkylosis">功能位强直</option><option value="nonfunctional">非功能位强直</option></select></div>
+      <div><select name="hand.${sideId}.rom.${digit.id}.${joint.id}.status"><option value="limited">活动受限</option><option value="functionalAnkylosis">功能位强直（已确认）</option><option value="nonfunctional">非功能位强直（已确认）</option></select></div>
+      <div><input type="number" min="-180" max="180" step="0.1" inputmode="decimal" name="hand.${sideId}.rom.${digit.id}.${joint.id}.fixedDegree" placeholder="强直时填写" aria-label="${digit.label}${joint.label}强直固定角度"></div>
       <div class="hand-band" data-band-for="hand.${sideId}.rom.${digit.id}.${joint.id}">＞3/4，不计分</div>
     </div>`)).join("");
   }
 
   function handRomPanel(sideId) {
     return `<details class="hand-details" open><summary>手指活动度（实测活动弧）</summary>
-      <div class="hand-rom-row hand-rom-header"><div>手指/关节</div><div>实测°</div><div>参考°</div><div>状态</div><div>自动分档</div></div>${handRomRows(sideId)}
+      <div class="hand-rom-row hand-rom-header"><div>手指/关节</div><div>活动弧°</div><div>参考°</div><div>状态</div><div>固定位°</div><div>自动描述</div></div>${handRomRows(sideId)}
     </details>`;
   }
 
@@ -176,8 +177,19 @@
         <div>${isTable ? (showReference ? muscleSelect(`reference.${m.id}.muscle`) : "M5（正常）") : escapeHtml(referenceMode.options[referenceMode.selectedIndex].text)}</div>
         <div>${isTable ? force : `${m.lower}°～${m.upper}°`}</div>
       </div>`;
-    }).join("") + `<label class="joint-status">关节状态<select name="jointStatus"><option value="limited">活动度受限/常规计算</option><option value="functionalAnkylosis">功能位强直</option><option value="nonfunctionalAnkylosis">非功能位强直（直接条款提示）</option></select></label>`;
+    }).join("") + (joint.directionOnly ? "" : `<div class="ankylosis-card">
+      <label>关节状态<select name="jointStatus"><option value="limited">活动度受限 / 常规计算</option><option value="functionalAnkylosis">功能位强直固定</option><option value="nonfunctionalAnkylosis">非功能位强直固定</option></select></label>
+      <div class="ankylosis-fields" hidden>
+        <label>固定方向<select name="fixationMotion">${joint.motions.map(m => `<option value="${m.id}">${escapeHtml(m.label)}</option>`).join("")}</select></label>
+        <label>固定角度（°）<input type="number" min="-180" max="220" step="0.1" inputmode="decimal" name="fixationDegree" placeholder="例：30"></label>
+        <label class="check-field"><input type="checkbox" name="ankylosisEvidenceConfirmed">已结合被动活动、重复测量及结构资料确认强直固定</label>
+        ${appraisalType.value === "injury" ? `<label class="check-field"><input type="checkbox" name="injuryDeformityConfirmed">已确认属于《人体损伤程度鉴定标准》所称“强直畸形”</label>` : ""}
+        <p class="ankylosis-sentence" data-ankylosis-sentence>请选择状态并填写固定角度。</p>
+      </div>
+      <small>角度用于描述固定位置；功能位性质由鉴定人依据功能影响和多源证据确认，系统不按单一角度推定。</small>
+    </div>`);
     methodGuidance();
+    syncAnkylosisFields();
   }
 
   function muscleSelect(name) {
@@ -190,7 +202,8 @@
       const readRom = sideId => Object.fromEntries(HAND_DIGITS.map(digit => [digit.id,Object.fromEntries(digit.joints.map(joint => [joint.id,{
         actual:Number(valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.actual`)),
         reference:Number(valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.reference`)),
-        status:valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.status`) || "limited"
+        status:valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.status`) || "limited",
+        fixedDegree:valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.fixedDegree`)
       }]))]));
       const readSide = sideId => appraisalType.value === "injury" ? ({
         rom:readRom(sideId), palmarSensoryLoss:Number(valueOf(`hand.${sideId}.palmarSensoryLoss`)||0),
@@ -226,6 +239,15 @@
       };
     });
     input.jointStatus = valueOf("jointStatus") || "limited";
+    const fixationMotion = valueOf("fixationMotion");
+    const motion = joint.motions.find(item => item.id === fixationMotion);
+    input.fixation = {
+      motionId: fixationMotion,
+      motionLabel: motion?.label || "",
+      degree: valueOf("fixationDegree"),
+      evidenceConfirmed: Boolean(form.elements.ankylosisEvidenceConfirmed?.checked),
+      injuryDeformityConfirmed: Boolean(form.elements.injuryDeformityConfirmed?.checked)
+    };
     return input;
   }
 
@@ -236,6 +258,11 @@
         for (const digit of HAND_DIGITS) for (const handJoint of digit.joints) {
           const item=side.rom[digit.id][handJoint.id];
           if (!Number.isFinite(item.actual) || item.actual < 0 || item.actual > 180 || !Number.isFinite(item.reference) || item.reference <= 0 || item.reference > 180) throw new Error(`${label}${digit.label}${handJoint.label}应填写0～180°的实测活动弧和大于0的参考值`);
+          if (item.status !== "limited") {
+            if (item.actual > 5) throw new Error(`${label}${digit.label}${handJoint.label}已选择强直，但活动弧大于5°；请核对状态或测量值`);
+            const fixed = item.fixedDegree === "" ? NaN : Number(item.fixedDegree);
+            if (!Number.isFinite(fixed) || fixed < -180 || fixed > 180) throw new Error(`${label}${digit.label}${handJoint.label}选择强直时须填写-180～180°的固定角度`);
+          }
         }
         if (appraisalType.value === "injury") {
           if (!Number.isFinite(side.palmarSensoryLoss) || side.palmarSensoryLoss < 0 || side.palmarSensoryLoss > 100) throw new Error(`${label}掌侧感觉丧失比例应为0～100%`);
@@ -257,6 +284,10 @@
       if (input.affected.flexion.degree + input.affected.extension.degree < 0) throw new Error("伤侧屈伸活动弧不能为负数");
       if (input.reference.flexion.degree + input.reference.extension.degree < 0) throw new Error("对照侧屈伸活动弧不能为负数");
     }
+    if (input.jointStatus !== "limited") {
+      const degree = input.fixation.degree === "" ? NaN : Number(input.fixation.degree);
+      if (!input.fixation.motionId || !Number.isFinite(degree) || degree < -180 || degree > 220) throw new Error("选择强直固定时，须填写固定方向和-180～220°的固定角度");
+    }
   }
 
   function buildSnapshot(result, input) {
@@ -275,8 +306,8 @@
     };
     return {
       id: `${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
-      createdAt: new Date().toISOString(), ruleVersion: "1.6.0", meta, input, result,
-      threshold: result.method === "handInjury" ? Calc.injuryHandThreshold(result.result,input.direct) : Calc.contextualThreshold(jointId, meta.appraisalType, result.result, input.jointStatus)
+      createdAt: new Date().toISOString(), ruleVersion: "1.7.0", meta, input, result,
+      threshold: result.method === "handInjury" ? Calc.injuryHandThreshold(result.result,input.direct) : Calc.contextualThreshold(jointId, meta.appraisalType, result.result, input.jointStatus, input.fixation)
     };
   }
 
@@ -339,6 +370,9 @@
       : isInjuryHand ? `${escapeHtml(result.formula)}<br><small>活动度比例仅作检验记录，未线性折算为指节权重。</small>`
       : `${escapeHtml(result.formula)}<br>${result.method === "table" ? `伤侧 ${formatPct(result.affectedTotal)} − 对照侧 ${formatPct(result.referenceTotal)} = ` : "计算结果 = "}<strong>${formatPct(result.result)}</strong>`;
     record.hidden = false;
+    const ankylosisText = !isHand && meta.jointStatus !== "limited"
+      ? Calc.describeAnkylosis(meta.jointName, meta.side, meta.jointStatus, snapshot.input.fixation, meta.appraisalType)
+      : "";
     record.innerHTML = `<div class="record-actions no-print"><button class="button ghost" data-action="copy">复制计算意见</button><button class="button ghost" data-action="download">导出JSON记录</button><button class="button secondary" data-action="save">保存至本机</button><button class="button primary" data-action="print">打印 / 另存PDF</button></div>
       <div class="record-header"><div><h2>关节功能丧失计算记录</h2></div><div class="record-number">记录ID<br>${escapeHtml(snapshot.id)}</div></div>
       <div class="record-meta">
@@ -348,6 +382,7 @@
       </div>
       <div class="result-banner"><div><small>${resultLabel}</small><div class="result-value">${resultText}</div></div><div><strong>${escapeHtml(threshold.level)}</strong><p>${escapeHtml(threshold.text)}</p><small>仅为数值或直接条款提示，不自动形成损伤程度或致残等级结论。</small></div></div>
       <p class="record-basis">依据：${escapeHtml(basis)}</p>
+      ${ankylosisText ? `<h3>强直固定描述</h3><div class="finding-box">${escapeHtml(ankylosisText)}</div>` : ""}
       <h3>计算明细</h3>${detailTable}
       <h3>汇总</h3><div class="formula-box">${summary}</div>
       <h3>辅助意见</h3><p>${escapeHtml(opinionText(snapshot))}</p>
@@ -361,7 +396,8 @@
     if (s.result.method === "handDisability") return `按附录C.8确认计分后，手功能丧失最终加权分值为${formatPoints(s.result.result)}（左手${formatPoints(s.result.left.subtotal)}，右手${formatPoints(s.result.right.subtotal)}）。${s.threshold.text}`;
     if (s.result.method === "handInjury") return `按附录C.7计权，双手累计手功能丧失值为${formatPct(s.result.result)}（左手${formatPct(s.result.left.subtotal)}，右手${formatPct(s.result.right.subtotal)}）。实测活动度未直接线性折算权重。${s.threshold.text}`;
     const part = s.meta.side === "不分侧" ? s.meta.jointName : `${s.meta.side}${s.meta.jointName}`;
-    return `${part}功能丧失值为${formatPct(s.result.result)}。${s.threshold.text}`;
+    const fixationText = s.meta.jointStatus !== "limited" ? `${Calc.describeAnkylosis(s.meta.jointName, s.meta.side, s.meta.jointStatus, s.input.fixation, s.meta.appraisalType)} ` : "";
+    return `${fixationText}${part}功能丧失值为${formatPct(s.result.result)}。${s.threshold.text}`;
   }
 
   function saveHistory(snapshot) {
@@ -390,14 +426,35 @@
   }
   function toast(message) { const el=document.getElementById("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800); }
 
+  function syncAnkylosisFields() {
+    const status = valueOf("jointStatus");
+    const fields = table.querySelector(".ankylosis-fields");
+    if (!fields) return;
+    fields.hidden = !status || status === "limited";
+    if (fields.hidden) return;
+    const joint = JOINTS[jointSelect.value];
+    const motionId = valueOf("fixationMotion");
+    const motion = joint.motions.find(item => item.id === motionId);
+    const fixation = {
+      motionLabel: motion?.label || "",
+      degree: valueOf("fixationDegree"),
+      evidenceConfirmed: Boolean(form.elements.ankylosisEvidenceConfirmed?.checked),
+      injuryDeformityConfirmed: Boolean(form.elements.injuryDeformityConfirmed?.checked)
+    };
+    const output = fields.querySelector("[data-ankylosis-sentence]");
+    output.textContent = Calc.describeAnkylosis(joint.name, valueOf("side"), status, fixation, appraisalType.value);
+    output.dataset.confirmed = fixation.evidenceConfirmed ? "true" : "false";
+  }
+
   function syncHandBands() {
     if (JOINTS[jointSelect.value].kind !== "hand") return;
     document.querySelectorAll("[data-band-for]").forEach(output => {
       const base=output.dataset.bandFor;
       const actual=Number(valueOf(`${base}.actual`)), reference=Number(valueOf(`${base}.reference`));
       const status=valueOf(`${base}.status`) || "limited";
+      const fixedDegree=valueOf(`${base}.fixedDegree`);
       try {
-        const band=Calc.classifyHandRom(actual,reference,status);
+        const band=Calc.classifyHandRom(actual,reference,status,fixedDegree);
         output.textContent=appraisalType.value === "injury" ? `${(band.ratio*100).toFixed(1)}% · 检验记录（不计C.7权重）` : `${(band.ratio*100).toFixed(1)}% · ${band.label}`;
         output.dataset.severity=band.severity;
       } catch { output.textContent="请填写有效参考值"; }
@@ -405,8 +462,8 @@
   }
 
   [jointSelect, methodSelect, referenceMode, appraisalType].forEach(el => el.addEventListener("change", renderMeasurements));
-  table.addEventListener("input",syncHandBands);
-  table.addEventListener("change",syncHandBands);
+  table.addEventListener("input",() => { syncHandBands(); syncAnkylosisFields(); });
+  table.addEventListener("change",() => { syncHandBands(); syncAnkylosisFields(); });
   form.addEventListener("submit", event => {
     event.preventDefault();
     try {
