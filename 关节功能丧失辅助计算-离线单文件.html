@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7f4ed">
+  <meta name="description" content="法医临床四肢大关节功能丧失百分比辅助计算与记录工具">
+  <meta name="application-name" content="关节计算">
+  <meta name="offline-single-file" content="true">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="关节功能丧失辅助计算">
+  <meta property="og:description" content="法医临床活动度计算与记录">
+  <title>关节功能丧失辅助计算</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%20role%3D%22img%22%20aria-label%3D%22%E5%85%B3%E8%8A%82%E8%AE%A1%E7%AE%97%22%3E%20%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22%23143d38%22%2F%3E%20%3Ccircle%20cx%3D%22182%22%20cy%3D%22256%22%20r%3D%2272%22%20fill%3D%22%23f5f2ea%22%2F%3E%20%3Ccircle%20cx%3D%22330%22%20cy%3D%22256%22%20r%3D%2272%22%20fill%3D%22%23f5f2ea%22%2F%3E%20%3Cpath%20d%3D%22M224%20232h64v48h-64z%22%20fill%3D%22%23d86f45%22%2F%3E%20%3Cpath%20d%3D%22M128%20112h256v48H128zm0%20240h256v48H128z%22%20fill%3D%22%23d86f45%22%2F%3E%20%3C%2Fsvg%3E" type="image/svg+xml">
+  <style>
+:root{--ink:#2f2a24;--muted:#756e65;--paper:#f7f4ed;--card:#fffdf8;--line:#ded8ce;--accent:#c76845;--green:#3f3a34;--green2:#9a4f35;--yellow:#f1dfb8;--red:#a94635;--shadow:0 10px 30px rgba(63,51,39,.06);font-family:"Microsoft YaHei UI","PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;color:var(--ink);background:var(--paper)}
+*{box-sizing:border-box}body{margin:0;min-width:320px;background:var(--paper)}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}.topbar{height:64px;padding:0 clamp(18px,4vw,52px);display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}.topbar>div:nth-child(2){display:flex;flex-direction:column}.topbar span{font-size:11px;color:var(--muted)}.brand-mark{width:36px;height:36px;border-radius:10px;background:var(--green);color:white;display:grid;place-items:center;font-family:serif;font-weight:bold}.icon-button{margin-left:auto;border:1px solid var(--green);border-radius:9px;padding:7px 14px;background:transparent}.hero{max-width:1240px;margin:0 auto;padding:38px clamp(18px,4vw,52px) 24px}.hero h1{font-size:clamp(30px,4vw,44px);line-height:1.15;margin:0;letter-spacing:-.025em}.hero p{color:var(--muted);margin:9px 0 0}.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--accent);font-weight:700}.layout{max-width:1240px;margin:0 auto;padding:0 clamp(18px,4vw,52px) 56px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}.workspace{min-width:0}.side-panel{display:grid;gap:16px;position:sticky;top:84px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:16px;box-shadow:var(--shadow)}.card.compact{padding:20px}.section-heading{display:flex;align-items:start;margin-bottom:20px}.section-heading h2{font-size:19px;margin:0}.section-heading p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.5}.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.meta-grid label:nth-last-child(-n+3){grid-column:auto}label{display:grid;gap:6px;font-size:12px;font-weight:600}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;padding:10px 11px;outline:none;transition:.2s}input:focus,select:focus,textarea:focus{border-color:var(--green2);box-shadow:0 0 0 3px rgba(36,96,87,.1)}.notice{margin-top:16px;border:0;background:#f4f6f4;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.55;color:#52615e}.notice.warning{border:0;background:#f8f3ef;color:#795543}.legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;color:var(--muted);font-size:11px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}.dot.affected{background:var(--accent)}.dot.reference{background:var(--green2)}.measurement-table{overflow-x:auto;border:1px solid var(--line);border-radius:10px}.measurement-row{display:grid;grid-template-columns:minmax(140px,1.35fr) minmax(105px,1fr) 100px minmax(105px,1fr) 100px 112px;align-items:center;min-width:700px;border-bottom:1px solid var(--line)}.measurement-row:last-child{border-bottom:0}.measurement-row.header{background:#edf2f0;color:var(--ink);font-size:11px;font-weight:700}.measurement-row>div{padding:9px;border-right:1px solid var(--line);min-height:50px;display:flex;align-items:center}.measurement-row>div:last-child{border-right:0}.measurement-row input,.measurement-row select{padding:7px}.motion-name{font-weight:700}.motion-name small{display:block;color:var(--muted);font-weight:400;margin-top:3px}.force-box{font-size:10px;font-weight:500;line-height:1.35}.force-box input{width:auto;margin:0 4px 0 0}.joint-status{margin:12px;max-width:360px}.hand-grid{display:grid;grid-template-columns:repeat(2,minmax(520px,1fr));gap:14px;padding:14px;min-width:1080px}.hand-panel{border:1px solid var(--line);border-radius:10px;overflow:hidden}.hand-panel h3{margin:0;padding:12px 14px;background:#edf2f0}.missing-score{padding:12px 14px;border-bottom:1px solid var(--line)}.hand-row{display:grid;grid-template-columns:76px minmax(210px,1fr) minmax(190px,1fr);align-items:center;border-bottom:1px solid var(--line)}.hand-row:last-child{border-bottom:0}.hand-row>div{padding:8px}.hand-row select{padding:7px}.hand-header{background:#f6f7f5;font-size:11px}.subtotal-row{font-weight:700;background:#f6f7f5}.field-help{font-size:11px;color:var(--muted);margin-top:10px}.action-bar{display:flex;justify-content:flex-end;gap:10px;padding-top:4px}.button{border:0;border-radius:8px;padding:11px 17px;font-weight:700}.button.primary{background:var(--green);color:#fff}.button.secondary{background:var(--accent);color:#fff}.button.ghost{background:#fff;border:1px solid var(--line)}.result-card{background:var(--green);color:#fff;border-radius:14px;padding:23px;min-height:150px;box-shadow:var(--shadow)}.result-label{font-size:11px;color:#b9d0cb}.result-card h3{font-size:29px;margin:20px 0 7px}.result-card p{color:#c7d7d3;line-height:1.5;margin:0;font-size:12px}.history-list{display:grid;gap:8px}.history-item{border:1px solid var(--line);background:white;border-radius:8px;padding:9px;text-align:left}.history-item strong,.history-item span{display:block}.history-item span{font-size:10px;color:var(--muted);margin-top:4px}.muted{color:var(--muted);font-size:12px}.source-card p{font-size:11px;line-height:1.65;color:var(--muted)}.version{border-top:1px solid var(--line);padding-top:10px}.record{max-width:1040px;margin:0 auto 70px;background:#fff;padding:42px;box-shadow:var(--shadow);border-radius:14px}.record-header{display:flex;justify-content:space-between;gap:30px;padding-bottom:20px;border-bottom:2px solid var(--green)}.record-header h2{font-size:27px;margin:0}.record-number{text-align:right;color:var(--muted);font-size:11px}.record-actions{display:flex;gap:9px;justify-content:flex-end;margin:20px 0}.record-meta{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin:20px 0}.record-meta div{padding:11px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.record-meta div:nth-child(4n){border-right:0}.record-meta div:nth-last-child(-n+4){border-bottom:0}.record-meta small{display:block;color:var(--muted);margin-bottom:4px}.result-banner{display:grid;grid-template-columns:180px 1fr;gap:20px;background:#f0f5f3;border-left:4px solid var(--green);padding:18px;margin:18px 0}.result-value{font-family:Georgia,serif;font-size:42px;font-weight:bold}.result-banner p{margin:4px 0;line-height:1.5}.record-basis{font-size:11px;color:var(--muted);margin:16px 0}.record h3{font-size:16px;margin:25px 0 10px}.calc-table{width:100%;border-collapse:collapse;font-size:12px}.calc-table th,.calc-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left}.calc-table th{background:#f1f4f2}.formula-box{font-family:Consolas,"Microsoft YaHei UI",sans-serif;background:#f6f7f5;border:1px solid var(--line);padding:13px;border-radius:7px;line-height:1.65}.record-disclaimer{font-size:11px;color:var(--muted);border-top:1px solid var(--line);margin-top:24px;padding-top:13px}footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:#172e2b;color:#fff;padding:10px 17px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:99}.toast.show{opacity:1;transform:translate(-50%,0)}
+.hand-details{border-bottom:1px solid var(--line)}.hand-details summary{padding:11px 14px;font-weight:700;background:#faf7f0;cursor:pointer}.hand-rom-row{display:grid;grid-template-columns:minmax(136px,1.25fr) 70px 70px 150px 84px minmax(190px,1.6fr);align-items:center;border-top:1px solid var(--line);font-size:11px}.hand-rom-row>div,.injury-segment-row>div{padding:7px}.hand-rom-row small{display:block;color:var(--muted);margin-top:2px}.hand-rom-row input,.hand-rom-row select,.injury-segment-row input,.injury-segment-row select{padding:6px}.hand-rom-header,.injury-segment-header{background:#f5f0e7;font-weight:700}.hand-band{color:var(--green2);line-height:1.35}.injury-segment-row{display:grid;grid-template-columns:minmax(110px,1fr) 52px 132px 88px 98px;align-items:center;border-top:1px solid var(--line);font-size:11px}.direct-clauses{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line);background:#faf7f0;font-size:11px}.direct-clauses label{display:flex;grid:unset;align-items:center;gap:5px}.direct-clauses input{width:auto}
+.hand-grid{grid-template-columns:1fr;min-width:0;gap:12px}.hand-panel{background:#fff}.hand-side>summary{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:#eaf1ee;cursor:pointer;list-style:none}.hand-side>summary::-webkit-details-marker{display:none}.hand-side>summary span{font-size:15px;font-weight:800}.hand-side>summary small{color:var(--muted);font-size:10px}.hand-workflow{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f4f7f5;border-bottom:1px solid var(--line);font-size:11px;color:#52615e}.hand-workflow span{display:flex;align-items:center;gap:6px;white-space:nowrap}.hand-workflow b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff}.hand-workflow i{height:1px;flex:1;background:var(--line)}.action-bar{position:sticky;bottom:0;z-index:5;padding:14px 0;background:linear-gradient(180deg,rgba(243,245,242,0),var(--paper) 30%)}
+.topbar{background:rgba(247,244,237,.9)}.brand-mark{background:var(--accent);border-radius:50%}.hero{padding-top:48px}.hero h1{font-family:Georgia,"Songti SC","SimSun",serif;font-weight:500;margin-top:12px}.card,.record{border-color:#e5ded3}.section-heading h2,.record-header h2{font-family:Georgia,"Songti SC","SimSun",serif;font-weight:600}.measurement-row.header,.hand-side>summary{background:#f2ece2}.notice{background:#f1ede5}.notice.warning{background:#f7e9df;color:#77432f}.button.primary{background:var(--accent)}.button.primary:hover{background:#b85a3b}.button.secondary{background:#74675b}.result-card{background:#36312c}.result-card p{color:#d8d0c6}.result-label{color:#d9b39f}.result-value{color:var(--accent)}.result-banner{background:#f6eee7;border-left-color:var(--accent)}.record-header{border-bottom-color:var(--accent)}.formula-box{background:#f7f3ec}.finding-box{background:#fbf1e8;border:1px solid #ead1c1;border-radius:10px;padding:14px;line-height:1.75}.ankylosis-card{margin:14px;padding:16px;border:1px solid #e6d7c9;border-radius:12px;background:#fbf7f0}.ankylosis-card>label{max-width:360px}.ankylosis-card>small{display:block;margin-top:9px;color:var(--muted);line-height:1.55}.ankylosis-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.ankylosis-fields[hidden]{display:none}.position-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;grid-column:1/-1}.position-note{grid-column:1/-1;margin:0;color:var(--muted);font-size:12px;line-height:1.55}.check-field{display:flex;grid-column:1/-1;align-items:flex-start;gap:8px;font-weight:500;line-height:1.5}.check-field input{width:auto;margin-top:2px}.ankylosis-sentence{grid-column:1/-1;margin:0;padding:11px 12px;border-radius:8px;background:#f1ebe2;color:#6f5f51;font-size:12px;line-height:1.65}.ankylosis-sentence[data-state="functionalLikely"]{background:#eaf3ee;color:#285641;border-left:3px solid #39825e}.ankylosis-sentence[data-state="nonfunctionalLikely"]{background:#f8e9e3;color:#7a382d;border-left:3px solid var(--accent)}.ankylosis-sentence[data-state="borderline"],.ankylosis-sentence[data-state="insufficient"]{background:#fff4d9;color:#72551e;border-left:3px solid #c9962e}.ankylosis-sentence[data-confirmed="true"]{box-shadow:inset 0 0 0 1px rgba(48,86,65,.16)}
+@media(max-width:680px){.measurement-table{overflow-x:auto}.hand-grid{min-width:0;padding:9px}.hand-side{overflow-x:auto}.hand-details{min-width:730px}.hand-row{grid-template-columns:72px 250px 210px}.direct-clauses{align-items:flex-start;flex-direction:column}.hand-workflow{overflow-x:auto}.hand-workflow i{min-width:28px}.record{overflow-x:auto}.ankylosis-fields,.position-inputs{grid-template-columns:1fr}}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.side-panel{position:static;grid-template-columns:1fr 1fr}.source-card{grid-column:1/-1}.form-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){.hero{padding-top:38px;display:block}.hero p{margin-top:24px}.layout{padding-left:14px;padding-right:14px}.card{padding:20px;border-radius:14px}.form-grid{grid-template-columns:1fr}.side-panel{grid-template-columns:1fr}.source-card{grid-column:auto}.action-bar .button{flex:1;padding:12px 8px}.record{padding:22px;margin:0 10px 50px}.record-header{display:block}.record-number{text-align:left}.record-meta{grid-template-columns:repeat(2,1fr)}.record-meta div:nth-child(4n){border-right:1px solid var(--line)}.record-meta div:nth-child(2n){border-right:0}.record-meta div:nth-last-child(-n+4){border-bottom:1px solid var(--line)}.record-meta div:nth-last-child(-n+2){border-bottom:0}.result-banner{grid-template-columns:1fr}.topbar{padding:0 16px}}
+@media print{@page{size:A4;margin:16mm}body{background:#fff}.no-print,footer{display:none!important}.record{display:block!important;max-width:none;margin:0;padding:0;box-shadow:none;border-radius:0}.record-actions{display:none}.record-header h2{font-size:24px}.record-meta{break-inside:avoid}.calc-table{font-size:10.5px}.calc-table th,.calc-table td{padding:6px}.record h3{break-after:avoid}.result-banner{break-inside:avoid}.formula-box,.record-notes{break-inside:avoid}a{color:inherit;text-decoration:none}}
+
+</style>
+</head>
+<body>
+  <header class="topbar no-print">
+    <div class="brand-mark" aria-hidden="true">衡</div>
+    <div><strong>关节功能丧失计算</strong><span>法医临床辅助工具</span></div>
+    <button class="icon-button" id="installButton" hidden>安装</button>
+  </header>
+
+  <main>
+    <section class="hero no-print"><div><span class="eyebrow">FORENSIC CLINICAL TOOL</span><h1>关节功能丧失计算</h1><p>记录测量，核对规则，生成可复核的计算记录。</p></div></section>
+
+    <div class="layout">
+      <section class="workspace no-print">
+        <form id="calculatorForm" novalidate>
+          <div class="card">
+            <div class="section-heading"><div><h2>基本信息</h2></div></div>
+            <div class="form-grid meta-grid">
+              <label>案件编号<input name="caseNumber" placeholder="例：（2026）临鉴字第001号"></label>
+              <label>被鉴定人<input name="subjectName" placeholder="姓名或匿名编号"></label>
+              <label>检验日期<input name="examDate" type="date"></label>
+              <label>记录人<input name="examiner" placeholder="鉴定人/助理"></label>
+              <label>鉴定目的<select name="appraisalType" id="appraisalType"><option value="injury">人体损伤程度鉴定</option><option value="disability" selected>人体损伤致残程度鉴定</option></select></label>
+              <label>受检侧<select name="side"><option value="左侧">左侧</option><option value="右侧">右侧</option><option value="双侧分别计算">双侧分别计算</option><option value="不分侧">不分侧</option></select></label>
+              <label>关节<select name="jointId" id="jointSelect"></select></label>
+              <label>计算方法<select name="method" id="methodSelect"><option value="table">查表法（活动度 × 肌力）</option><option value="direction" selected>方向均分法</option><option value="hand">手功能专用</option></select></label>
+              <label>对照依据<select name="referenceMode" id="referenceMode"><option value="healthy">健侧实测值</option><option value="standardUpper">正常参考值（区间上限）</option><option value="standardLower">正常参考值（区间下限）</option></select></label>
+            </div>
+            <div id="methodNotice" class="notice"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-heading"><div><h2>活动度测量</h2><p id="jointNote"></p></div></div>
+            <div class="legend"><span><i class="dot affected"></i><span id="affectedLegendText">伤侧输入</span></span><span><i class="dot reference"></i><span id="referenceLegendText">健侧/对照输入</span></span><span>单位：度（°）</span></div>
+            <div class="measurement-table" id="measurementTable"></div>
+            <div class="field-help" id="measurementHelp">单位：度（°）。查表法录入被动活动度和对应肌力。</div>
+          </div>
+
+          <div class="action-bar">
+            <button type="reset" class="button ghost">重置</button>
+            <button type="submit" class="button primary">生成完整计算记录</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="side-panel no-print">
+        <div class="result-card" id="liveSummary">
+          <span class="result-label">计算结果</span><h3>等待计算</h3><p>填写角度后生成记录</p>
+        </div>
+        <div class="card compact"><h3>本机记录</h3><div id="historyList" class="history-list"><p class="muted">尚无已保存记录</p></div></div>
+        <div class="card compact source-card"><h3>计算依据</h3><p>《人体损伤程度鉴定标准》《人体损伤致残程度分级》、SF/T 0111—2021、SF/T 0096—2021</p><p class="version">规则版本 1.8.0</p></div>
+      </aside>
+    </div>
+
+    <section id="record" class="record" hidden aria-live="polite"></section>
+  </main>
+
+  <footer class="no-print"><p>计算结果仅供辅助复核</p></footer>
+  <div id="toast" class="toast no-print" role="status"></div>
+
+  <script>
+(function (root) {
+  "use strict";
+
+  const L9 = [
+    [100, 75, 50, 25, 0], [100, 77, 55, 32, 10], [100, 80, 60, 40, 20],
+    [100, 82, 65, 47, 30], [100, 85, 70, 55, 40], [100, 87, 75, 62, 50],
+    [100, 90, 80, 70, 60], [100, 92, 85, 77, 70], [100, 95, 90, 85, 80]
+  ];
+  const L5 = [L9[0], L9[2], L9[4], L9[6], L9[8]];
+  const L4 = [L9[0], L9[4], L9[6], L9[8]];
+
+  function ranges(edges, labels, losses) {
+    return labels.map((label, i) => ({ min: edges[i][0], max: edges[i][1], label, loss: losses[i] }));
+  }
+
+  const R = {
+    shoulderLong: ranges([[171, Infinity],[151,170],[131,150],[111,130],[91,110],[71,90],[51,70],[31,50],[-Infinity,30]], ["≥171","151～170","131～150","111～130","91～110","71～90","51～70","31～50","≤30"], L9),
+    shoulderShort: ranges([[41,Infinity],[31,40],[21,30],[11,20],[-Infinity,10]], ["≥41","31～40","21～30","11～20","≤10"], L5),
+    shoulderRotation: ranges([[81,Infinity],[71,80],[61,70],[51,60],[41,50],[31,40],[21,30],[11,20],[-Infinity,10]], ["≥81","71～80","61～70","51～60","41～50","31～40","21～30","11～20","≤10"], L9),
+    elbowFlex: ranges([[41,Infinity],[36,40],[31,35],[26,30],[21,25],[16,20],[11,15],[6,10],[-Infinity,5]], ["≥41","36～40","31～35","26～30","21～25","16～20","11～15","6～10","≤5"], L9),
+    elbowExtend: ranges([[81,Infinity],[71,80],[61,70],[51,60],[41,50],[31,40],[21,30],[11,20],[-Infinity,10]], ["≥81","71～80","61～70","51～60","41～50","31～40","21～30","11～20","≤10"], L9),
+    wristLong: ranges([[61,Infinity],[51,60],[41,50],[31,40],[26,30],[21,25],[16,20],[11,15],[-Infinity,10]], ["≥61","51～60","41～50","31～40","26～30","21～25","16～20","11～15","≤10"], L9),
+    wristRadial: ranges([[21,Infinity],[16,20],[11,15],[6,10],[-Infinity,5]], ["≥21","16～20","11～15","6～10","≤5"], L5),
+    wristUlnar: ranges([[41,Infinity],[31,40],[21,30],[11,20],[-Infinity,10]], ["≥41","31～40","21～30","11～20","≤10"], L5),
+    hipFlex: ranges([[121,Infinity],[106,120],[91,105],[76,90],[61,75],[46,60],[31,45],[16,30],[-Infinity,15]], ["≥121","106～120","91～105","76～90","61～75","46～60","31～45","16～30","≤15"], L9),
+    hipExtend: ranges([[11,Infinity],[6,10],[1,5],[0,0]], ["≥11","6～10","1～5","0"], [L9[0], L9[4], L9[6], L9[8]]),
+    hipAbAdRot: ranges([[41,Infinity],[31,40],[21,30],[11,20],[-Infinity,10]], ["≥41","31～40","21～30","11～20","≤10"], L5),
+    hipAdduction: ranges([[16,Infinity],[11,15],[6,10],[1,5],[0,0]], ["≥16","11～15","6～10","1～5","0"], L5),
+    kneeFlex: ranges([[130,Infinity],[116,129],[101,115],[86,100],[71,85],[61,70],[46,60],[31,45],[-Infinity,30]], ["≥130","116～129","101～115","86～100","71～85","61～70","46～60","31～45","≤30"], L9),
+    kneeDeficit: ranges([[0,5],[6,10],[11,20],[21,25],[26,30],[31,35],[36,40],[41,45],[46,Infinity]], ["欠伸≤5（表值≥-5）","欠伸6～10","欠伸11～20","欠伸21～25","欠伸26～30","欠伸31～35","欠伸36～40","欠伸41～45","欠伸≥46"], L9),
+    ankleDorsi: ranges([[16,Infinity],[11,15],[6,10],[1,5],[0,0]], ["≥16","11～15","6～10","1～5","0"], L5),
+    anklePlantar: ranges([[41,Infinity],[31,40],[21,30],[11,20],[-Infinity,10]], ["≥41","31～40","21～30","11～20","≤10"], L5)
+  };
+
+  // 功能位角度为临床位置参考，不是鉴定标准给出的法定判定阈值。
+  // 多轴关节须同时满足全部必填轴；boundary 用于标记需人工复核的边界区。
+  const FUNCTIONAL_POSITIONS = {
+    shoulder: {
+      axes: [
+        {id:"flexion",label:"前屈",min:30,max:45,boundary:5},
+        {id:"abduction",label:"外展",min:60,max:90,boundary:5},
+        {id:"externalRotation",label:"贴壁位外旋",min:15,max:20,boundary:5}
+      ],
+      note:"肩为多轴关节，前屈、外展和贴壁位外旋须同时录入。",
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    elbow: {
+      axes:[{id:"flexion",label:"屈曲",min:80,max:90,boundary:5}],
+      note:"还应确认前臂处于旋前、旋后的中立位；双肘同时强直等特殊情形需个案复核。",
+      checks:[{id:"forearmNeutral",label:"前臂旋转位已核实（中立位或符合个案功能需求）"}],
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    wrist: {
+      axes:[
+        {id:"dorsiflexion",label:"背伸",min:30,max:30,boundary:5},
+        {id:"ulnarDeviation",label:"尺偏",min:5,max:10,boundary:5}
+      ],
+      note:"腕为双轴关节，背伸与尺偏须同时录入。",
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    hip: {
+      axes:[
+        {id:"flexion",label:"前屈",min:15,max:20,boundary:5},
+        {id:"abduction",label:"外展",min:10,max:15,boundary:5}
+      ],
+      note:"髋为多轴关节，前屈与外展须同时录入；旋转畸形另行复核。",
+      checks:[{id:"rotationReviewed",label:"内、外旋固定状态已核实，无影响功能的旋转畸形"}],
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    knee: {
+      axes:[{id:"flexion",label:"屈曲",min:5,max:20,boundary:5}],
+      note:"本范围适用于成人；不满14岁者应按伸直位另行复核。",
+      checks:[{id:"adultRule",label:"已确认适用成人功能位参考"}],
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    },
+    ankle: {
+      axes:[
+        {id:"sagittal",label:"矢状位（背屈为正、跖屈为负）",min:0,max:0,boundary:5},
+        {id:"coronal",label:"冠状位（外翻为正、内翻为负）",min:0,max:0,boundary:5}
+      ],
+      note:"踝功能位为中立位；须同时排除跖屈/背屈及内翻/外翻固定。",
+      source:"骨科在线《人体关节正常活动范围汇总》"
+    }
+  };
+
+  const JOINTS = {
+    shoulder: {
+      name: "肩关节", directions: 6, note: "内旋、外旋默认采用贴壁位测量。",
+      motions: [
+        ["flexion","前屈上举",180,160,R.shoulderLong], ["extension","后伸",50,40,R.shoulderShort],
+        ["abduction","外展上举",180,160,R.shoulderLong], ["adduction","内收",45,20,R.shoulderShort],
+        ["externalRotation","贴壁位外旋",60,45,R.shoulderRotation], ["internalRotation","贴壁位内旋",70,45,R.shoulderRotation]
+      ]
+    },
+    elbow: {
+      name: "肘关节", directions: 1, axisMode: true,
+      note: "采用中立位0°法：欠伸填负数，过伸填正数；查表时自动换算为以屈曲90°为中立位的两个方向活动度。",
+      motions: [
+        ["flexion","最大屈曲",150,135,R.elbowFlex,"elbowFlex"],
+        ["extension","伸展",0,0,R.elbowExtend,"elbowExtensionSigned","欠伸填负数，过伸填正数"]
+      ]
+    },
+    wrist: {
+      name: "腕关节", directions: 4, note: "掌屈/背屈及桡偏/尺偏为两个轴位。",
+      motions: [
+        ["palmarFlexion","掌屈",60,50,R.wristLong], ["dorsiflexion","背伸",60,50,R.wristLong],
+        ["ulnarDeviation","尺偏",40,30,R.wristUlnar], ["radialDeviation","桡偏",30,25,R.wristRadial]
+      ]
+    },
+    hip: {
+      name: "髋关节", directions: 6, note: "表中前屈指屈膝位前屈。",
+      motions: [
+        ["flexion","前屈（屈膝位）",140,125,R.hipFlex], ["extension","后伸",15,10,R.hipExtend],
+        ["abduction","外展",45,30,R.hipAbAdRot], ["adduction","内收",30,20,R.hipAdduction],
+        ["externalRotation","外旋",45,30,R.hipAbAdRot], ["internalRotation","内旋",50,40,R.hipAbAdRot]
+      ]
+    },
+    knee: {
+      name: "膝关节", directions: 1, axisMode: true, kneeSum: true,
+      note: "采用中立位0°法：欠伸填负数，过伸填正数；查表法将屈曲、伸展丧失值相加并封顶100%。",
+      motions: [
+        ["flexion","最大屈曲",150,120,R.kneeFlex],
+        ["extension","伸展",0,0,R.kneeDeficit,"extensionDeficitSigned","欠伸填负数，过伸填正数"]
+      ]
+    },
+    ankle: {
+      name: "踝关节", directions: 2, note: "测量背屈、跖屈两个方向。",
+      motions: [
+        ["dorsiflexion","背屈",30,20,R.ankleDorsi], ["plantarFlexion","跖屈",50,40,R.anklePlantar]
+      ]
+    },
+    cervical: {
+      name: "颈椎", directions: 6, directionOnly: true,
+      note: "测量前屈、后伸、左右侧屈和左右旋转。",
+      motions: [
+        ["flexion","前屈",45,35], ["extension","后伸",45,35],
+        ["leftLateralFlexion","左侧屈",45,45], ["rightLateralFlexion","右侧屈",45,45],
+        ["leftRotation","左旋转",80,60], ["rightRotation","右旋转",80,60]
+      ]
+    },
+    lumbar: {
+      name: "腰椎", directions: 6, directionOnly: true,
+      note: "测量前屈、后伸、左右侧屈和左右旋转。",
+      motions: [
+        ["flexion","前屈",90,90], ["extension","后伸",30,30],
+        ["leftLateralFlexion","左侧屈",35,20], ["rightLateralFlexion","右侧屈",35,20],
+        ["leftRotation","左旋转",45,30], ["rightRotation","右旋转",45,30]
+      ]
+    },
+    hand: {
+      name: "手功能", kind: "hand", directions: 0,
+      note: "损伤程度与致残程度采用不同规则；手指活动度按实测活动弧与参考活动弧比较。",
+      motions: []
+    }
+  };
+
+  const HAND_DIGITS = [
+    { id:"thumb", label:"拇指", joints:[
+      {id:"mcp",label:"掌指关节（MCP）",lower:70,upper:80},
+      {id:"ip",label:"指间关节（IP）",lower:70,upper:85}
+    ]},
+    ...[
+      ["index","示指"],["middle","中指"],["ring","环指"],["little","小指"]
+    ].map(([id,label]) => ({id,label,joints:[
+      {id:"mcp",label:"掌指关节（MCP）",lower:70,upper:85},
+      {id:"pip",label:"近侧指间关节（PIP）",lower:90,upper:100},
+      {id:"dip",label:"远侧指间关节（DIP）",lower:70,upper:85}
+    ]}))
+  ];
+
+  const INJURY_HAND_SEGMENTS = [
+    {id:"thumb.distal",label:"拇指远节",weight:18},{id:"thumb.proximal",label:"拇指近节",weight:18},
+    {id:"index.distal",label:"示指远节",weight:8},{id:"index.middle",label:"示指中节",weight:7},{id:"index.proximal",label:"示指近节",weight:3},
+    {id:"middle.distal",label:"中指远节",weight:8},{id:"middle.middle",label:"中指中节",weight:7},{id:"middle.proximal",label:"中指近节",weight:3},
+    {id:"ring.distal",label:"环指远节",weight:4},{id:"ring.middle",label:"环指中节",weight:3},{id:"ring.proximal",label:"环指近节",weight:2},
+    {id:"little.distal",label:"小指远节",weight:4},{id:"little.middle",label:"小指中节",weight:3},{id:"little.proximal",label:"小指近节",weight:2},
+    {id:"metacarpal.1",label:"第一掌骨",weight:4},{id:"metacarpal.2",label:"第二掌骨",weight:2},
+    {id:"metacarpal.3",label:"第三掌骨",weight:2},{id:"metacarpal.4",label:"第四掌骨",weight:1},{id:"metacarpal.5",label:"第五掌骨",weight:1}
+  ];
+
+  const HAND_SEVERITIES = {
+    nonfunctional: "非功能位强直",
+    functionalHalf: "功能位强直或活动度≤1/2参考值",
+    threeQuarter: "活动度＞1/2、但≤3/4参考值"
+  };
+
+  const HAND_GROUPS = [
+    { id:"thumb", label:"拇指", patterns:[
+      {id:"all",label:"第一掌腕、掌指、指间关节均受累",scores:{nonfunctional:40,functionalHalf:25,threeQuarter:15}},
+      {id:"mcpIp",label:"掌指、指间关节均受累",scores:{nonfunctional:30,functionalHalf:20,threeQuarter:10}},
+      {id:"single",label:"掌指、指间单一关节受累",scores:{nonfunctional:20,functionalHalf:15,threeQuarter:5}}
+    ]},
+    { id:"index", label:"示指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:20,functionalHalf:15,threeQuarter:5}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:15,functionalHalf:10,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}}
+    ]},
+    { id:"middle", label:"中指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:15,functionalHalf:5,threeQuarter:5}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:10,functionalHalf:5,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:5,functionalHalf:0,threeQuarter:0}}
+    ]},
+    { id:"ring", label:"环指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:10,functionalHalf:5,threeQuarter:5}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:5,functionalHalf:0,threeQuarter:0}}
+    ]},
+    { id:"little", label:"小指", patterns:[
+      {id:"all",label:"掌指、指间关节均受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}},
+      {id:"mcpPip",label:"掌指或近侧指间关节受累",scores:{nonfunctional:5,functionalHalf:5,threeQuarter:0}},
+      {id:"dip",label:"远侧指间关节受累",scores:{nonfunctional:0,functionalHalf:0,threeQuarter:0}}
+    ]},
+    { id:"wrist", label:"腕关节", patterns:[
+      {id:"majorHandLoss",label:"手功能大部分丧失时腕关节受累",scores:{nonfunctional:10,functionalHalf:5,threeQuarter:0}}
+    ]}
+  ];
+
+  Object.values(JOINTS).forEach(joint => {
+    joint.motions = joint.motions.map(([id,label,upper,lower,bands,transform="identity",hint=""]) => ({id,label,upper,lower,bands,transform,hint}));
+  });
+
+  const API = { JOINTS, FUNCTIONAL_POSITIONS, HAND_DIGITS, INJURY_HAND_SEGMENTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS: {1:"≤M1",2:"M2",3:"M3",4:"M4",5:"M5"} };
+  root.JointData = API;
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+  <script>
+(function (root) {
+  "use strict";
+
+  const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+  const round = (n, digits = 2) => Number(n.toFixed(digits));
+
+  function tableValue(motion, rawValue) {
+    const value = Number(rawValue);
+    if (motion.transform === "elbowFlex") return Math.max(0, value - 90);
+    if (motion.transform === "elbowExtensionSigned") return Math.max(0, 90 + value);
+    if (motion.transform === "extensionDeficitSigned") return Math.max(0, -value);
+    return Math.max(0, value);
+  }
+
+  function lookup(motion, rawValue, muscle, forced100) {
+    const converted = tableValue(motion, rawValue);
+    if (forced100) return { converted, band: "同轴反向方位按100%", loss: 100, forced: true };
+    const band = motion.bands.find(b => converted >= b.min && converted <= b.max);
+    if (!band) throw new Error(`${motion.label}活动度${converted}°不在查表范围内`);
+    return { converted, band: band.label, loss: band.loss[clamp(Number(muscle), 1, 5) - 1], forced: false };
+  }
+
+  function aggregateTable(joint, sideRows) {
+    const total = sideRows.reduce((sum, row) => sum + row.loss, 0);
+    return joint.kneeSum ? Math.min(100, total) : total / joint.motions.length;
+  }
+
+  function calculateTable(joint, input) {
+    if (joint.directionOnly) throw new Error(`${joint.name}仅适用方向均分法`);
+    const affectedRows = joint.motions.map(m => ({
+      motion: m,
+      ...lookup(m, input.affected[m.id].degree, input.affected[m.id].muscle, input.affected[m.id].forced100)
+    }));
+    const affectedTotal = aggregateTable(joint, affectedRows);
+    const referenceRows = input.referenceMode === "healthy"
+      ? joint.motions.map(m => ({ motion: m, ...lookup(m, input.reference[m.id].degree, input.reference[m.id].muscle, input.reference[m.id].forced100) }))
+      : joint.motions.map(m => ({ motion: m, converted: Number(input.reference[m.id].degree), band: "正常参考基线", loss: 0, forced: false }));
+    const referenceTotal = input.referenceMode === "healthy" ? aggregateTable(joint, referenceRows) : 0;
+    return {
+      method: "table", affectedRows, referenceRows,
+      affectedTotal: round(affectedTotal), referenceTotal: round(referenceTotal),
+      result: round(clamp(affectedTotal - referenceTotal, 0, 100)),
+      formula: joint.kneeSum
+        ? "min(屈曲查表值 + 伸展查表值, 100%)；实际丧失=伤侧−对照侧"
+        : `(各方向查表值之和 ÷ ${joint.motions.length})；实际丧失=伤侧−对照侧`
+    };
+  }
+
+  function calculateDirection(joint, input) {
+    const referenceValue = m => input.referenceMode === "healthy"
+      ? Number(input.reference[m.id].degree)
+      : Number(input.referenceMode === "standardLower" ? m.lower : m.upper);
+
+    if (joint.axisMode) {
+      const flex = joint.motions[0];
+      const extension = joint.motions[1];
+      const affectedArc = Number(input.affected[flex.id].degree) + Number(input.affected[extension.id].degree);
+      const refArc = referenceValue(flex) + referenceValue(extension);
+      const loss = refArc > 0 ? clamp((refArc - affectedArc) / refArc * 100, 0, 100) : 0;
+      return {
+        method: "direction", result: round(loss), affectedArc: round(affectedArc), referenceArc: round(refArc),
+        rows: [{ label: "屈伸活动弧", affected: affectedArc, reference: refArc, loss: round(loss) }],
+        formula: `(${round(refArc)}° − ${round(affectedArc)}°) ÷ ${round(refArc)}° × 100%`
+      };
+    }
+
+    const rows = joint.motions.map(m => {
+      const affected = Number(input.affected[m.id].degree);
+      const reference = referenceValue(m);
+      const loss = reference > 0 ? clamp((reference - affected) / reference * 100, 0, 100) : 0;
+      return { label: m.label, affected, reference, loss: round(loss) };
+    });
+    const result = rows.reduce((sum, row) => sum + row.loss, 0) / rows.length;
+    return {
+      method: "direction", rows, result: round(result),
+      formula: `Σ各方向[(对照值−${joint.directionOnly ? "实测值" : "伤侧值"})÷对照值×100%] ÷ ${rows.length}`
+    };
+  }
+
+  function scoreHandSide(sideInput, handGroups) {
+    const missingScore = clamp(Number(sideInput.missingScore) || 0, 0, 100);
+    const rows = handGroups.map(group => {
+      const selected = sideInput.groups?.[group.id] || {};
+      const pattern = group.patterns.find(item => item.id === selected.patternId);
+      const severity = selected.severity;
+      const score = pattern && Object.prototype.hasOwnProperty.call(pattern.scores, severity) ? pattern.scores[severity] : 0;
+      return {
+        groupId: group.id, groupLabel: group.label,
+        patternId: pattern?.id || "", patternLabel: pattern?.label || "未计分",
+        severity: severity || "", score
+      };
+    });
+    const dysfunctionScore = rows.reduce((sum, row) => sum + row.score, 0);
+    const subtotal = clamp(missingScore + dysfunctionScore, 0, 100);
+    return { missingScore: round(missingScore), dysfunctionScore: round(dysfunctionScore), subtotal: round(subtotal), rows };
+  }
+
+  function classifyHandRom(actual, reference, status="limited", fixedDegree=null) {
+    const ref = Number(reference);
+    const measured = Math.max(0, Number(actual));
+    if (!Number.isFinite(ref) || ref <= 0 || !Number.isFinite(measured)) throw new Error("手指活动度和参考值应为有效数字，且参考值大于0");
+    const ratio = measured / ref;
+    const loss = round(clamp((1-ratio)*100,0,100));
+    const fixed = fixedDegree === "" || fixedDegree == null ? NaN : Number(fixedDegree);
+    if (status === "nonfunctional") return {
+      severity:"nonfunctional", ratio:round(ratio), loss,
+      label:`活动弧${round(measured)}°；强直固定于${Number.isFinite(fixed) ? `${round(fixed)}°位` : "未填写角度的位置"}，已录入为非功能位`
+    };
+    if (status === "functionalAnkylosis") return {
+      severity:"functionalHalf", ratio:round(ratio), loss,
+      label:`活动弧${round(measured)}°；强直固定于${Number.isFinite(fixed) ? `${round(fixed)}°位` : "未填写角度的位置"}，已录入为功能位`
+    };
+    const severity = ratio <= 0.5 ? "functionalHalf" : ratio <= 0.75 ? "threeQuarter" : "";
+    const label = ratio <= 0.5 ? "活动度≤1/2参考值" : ratio <= 0.75 ? "活动度＞1/2且≤3/4参考值" : "活动度＞3/4参考值（表C-10不计分）";
+    return { severity, ratio:round(ratio), loss, label };
+  }
+
+  function assessHandRomSide(sideInput, handDigits) {
+    return handDigits.flatMap(digit => digit.joints.map(joint => {
+      const item = sideInput.rom?.[digit.id]?.[joint.id] || {};
+      return { digitId:digit.id, digitLabel:digit.label, jointId:joint.id, jointLabel:joint.label,
+        actual:Number(item.actual), reference:Number(item.reference), status:item.status || "limited",
+        fixedDegree:item.fixedDegree === "" || item.fixedDegree == null ? null : Number(item.fixedDegree),
+        ...classifyHandRom(item.actual, item.reference, item.status, item.fixedDegree) };
+    }));
+  }
+
+  function calculateHand(input, handGroups, handDigits=[]) {
+    const left = scoreHandSide(input.left, handGroups);
+    const right = scoreHandSide(input.right, handGroups);
+    left.romRows = assessHandRomSide(input.left, handDigits);
+    right.romRows = assessHandRomSide(input.right, handDigits);
+    const A = Math.max(left.subtotal, right.subtotal);
+    const B = Math.min(left.subtotal, right.subtotal);
+    const result = A + B * (200 - A) / 200;
+    return {
+      method: "handDisability", left, right, A: round(A), B: round(B), result: round(result),
+      formula: `A + B × (200 − A) ÷ 200 = ${round(A)} + ${round(B)} × (200 − ${round(A)}) ÷ 200 = ${round(result)}分`
+    };
+  }
+
+  function scoreInjuryHandSide(sideInput, segments) {
+    const rows = segments.map(segment => {
+      const item = sideInput.segments?.[segment.id] || {};
+      const state = item.state || "normal";
+      let score = 0;
+      let formula = "未计分";
+      if (state === "missing" || state === "completeLoss") {
+        score = segment.weight;
+        formula = `${segment.weight}%（该指节/掌骨固定权重）`;
+      } else if (state === "partialMissing") {
+        const missingLength = Number(item.missingLength);
+        const referenceLength = Number(item.referenceLength);
+        if (!(missingLength >= 0) || !(referenceLength > 0) || missingLength > referenceLength) throw new Error(`${segment.label}部分缺失长度应在0至健侧同节长度之间`);
+        score = missingLength / referenceLength * segment.weight;
+        formula = `${round(missingLength)}÷${round(referenceLength)}×${segment.weight}%`;
+      }
+      return {...segment,state,score:round(score),formula};
+    });
+    const segmentScore = rows.reduce((sum,row)=>sum+row.score,0);
+    const palmarSensoryLoss = clamp(Number(sideInput.palmarSensoryLoss)||0,0,100);
+    const sensoryScore = palmarSensoryLoss * 0.5;
+    return {rows,segmentScore:round(segmentScore),palmarSensoryLoss:round(palmarSensoryLoss),sensoryScore:round(sensoryScore),subtotal:round(segmentScore+sensoryScore)};
+  }
+
+  function injuryHandThreshold(result, direct={}) {
+    if (direct.bothHandsCompleteLoss) return {level:"重伤一级（直接条款）",grade:"重伤一级",text:"已确认双手完全缺失或功能完全丧失，符合重伤一级直接条款。"};
+    if (direct.thumbContracture || direct.threeFingerContracture) return {level:"重伤二级（直接条款）",grade:"重伤二级",text:"已确认不能对指和握物的相应手指挛缩情形，符合重伤二级直接条款。"};
+    if (result >= 36) return {level:"重伤二级",grade:"重伤二级",text:"手功能丧失累计值达到36%，对应重伤二级数值条款。"};
+    if (result >= 16) return {level:"轻伤一级",grade:"轻伤一级",text:"手功能丧失累计值达到16%，对应轻伤一级数值条款。"};
+    if (result >= 4) return {level:"轻伤二级",grade:"轻伤二级",text:"手功能丧失累计值达到4%，对应轻伤二级数值条款。"};
+    return {level:"未达轻伤二级数值阈值",grade:null,text:"本项累计值未达到手功能丧失4%的相关数值阈值。"};
+  }
+
+  function calculateInjuryHand(input, segments, handDigits=[]) {
+    const left=scoreInjuryHandSide(input.left,segments), right=scoreInjuryHandSide(input.right,segments);
+    left.romRows=assessHandRomSide(input.left,handDigits); right.romRows=assessHandRomSide(input.right,handDigits);
+    const result=round(left.subtotal+right.subtotal);
+    return {method:"handInjury",left,right,result,direct:input.direct||{},formula:`左手 ${left.subtotal}% + 右手 ${right.subtotal}% = ${result}%`};
+  }
+
+  function handThreshold(result) {
+    if (result >= 150) return { level:"四级", grade:"四级", text:"手功能丧失分值达到150分，对应四级数值条款。" };
+    if (result >= 120) return { level:"五级", grade:"五级", text:"手功能丧失分值达到120分，对应五级数值条款。" };
+    if (result >= 90) return { level:"六级", grade:"六级", text:"手功能丧失分值达到90分，对应六级数值条款。" };
+    if (result >= 60) return { level:"七级", grade:"七级", text:"手功能丧失分值达到60分，对应七级数值条款。" };
+    if (result >= 40) return { level:"八级", grade:"八级", text:"手功能丧失分值达到40分，对应八级数值条款。" };
+    if (result >= 25) return { level:"九级", grade:"九级", text:"手功能丧失分值达到25分，对应九级数值条款。" };
+    if (result >= 10) return { level:"十级", grade:"十级", text:"手功能丧失分值达到10分，对应十级数值条款。" };
+    return { level:"未达十级数值阈值", grade:null, text:"仅就本项分值，未达到手功能丧失10分的相关数值阈值。" };
+  }
+
+  function functionalRangeLabel(axis) {
+    return axis.min === axis.max ? `${axis.min}°` : `${axis.min}°～${axis.max}°`;
+  }
+
+  function assessFunctionalPosition(rule, values={}, checks={}) {
+    if (!rule || !Array.isArray(rule.axes)) return {state:"unsupported",jointStatus:"ankylosisPending",text:"该部位没有可用的功能位角度规则，需人工复核。",rows:[]};
+    const rows=rule.axes.map(axis=>{
+      const raw=values[axis.id];
+      const value=raw === "" || raw == null ? NaN : Number(raw);
+      if (!Number.isFinite(value)) return {...axis,value:null,state:"missing",range: functionalRangeLabel(axis)};
+      if (value >= axis.min && value <= axis.max) return {...axis,value,state:"inside",range:functionalRangeLabel(axis),distance:0};
+      const distance=value < axis.min ? axis.min-value : value-axis.max;
+      return {...axis,value,state:distance <= (axis.boundary || 0) ? "boundary" : "outside",range:functionalRangeLabel(axis),distance:round(distance)};
+    });
+    const missing=rows.filter(row=>row.state==="missing");
+    const outside=rows.filter(row=>row.state==="outside");
+    const boundary=rows.filter(row=>row.state==="boundary");
+    const unchecked=(rule.checks || []).filter(item=>!checks[item.id]);
+    const positions=rows.filter(row=>row.value != null).map(row=>`${row.label}${round(row.value)}°`).join("、");
+    if (outside.length) {
+      const reasons=outside.map(row=>`${row.label}${round(row.value)}°超出参考${row.range}`).join("；");
+      return {state:"nonfunctionalLikely",jointStatus:"nonfunctionalAnkylosis",rows,positions,text:`角度初判：${reasons}，初判为非功能位。`};
+    }
+    if (missing.length || unchecked.length) {
+      const reasons=[
+        missing.length ? `还需填写${missing.map(row=>row.label).join("、")}` : "",
+        unchecked.length ? `还需核实${unchecked.map(item=>item.label).join("、")}` : ""
+      ].filter(Boolean).join("；");
+      return {state:"insufficient",jointStatus:"ankylosisPending",rows,positions,text:`角度初判：信息不足；${reasons}。`};
+    }
+    if (boundary.length) {
+      const reasons=boundary.map(row=>`${row.label}${round(row.value)}°接近参考边界${row.range}`).join("；");
+      return {state:"borderline",jointStatus:"ankylosisPending",rows,positions,text:`角度初判：${reasons}，处于系统设置的±${Math.max(...boundary.map(row=>row.boundary || 0))}°边界复核区。`};
+    }
+    return {state:"functionalLikely",jointStatus:"functionalAnkylosis",rows,positions,text:`角度初判：${positions}均在临床功能位参考范围内，初判为功能位。`};
+  }
+
+  function describeAnkylosis(jointName, side, jointStatus, fixation={}, appraisalType="disability") {
+    if (jointStatus === "limited") return "";
+    const statusLabel = jointStatus === "nonfunctionalAnkylosis" ? "非功能位" : jointStatus === "functionalAnkylosis" ? "功能位" : "性质待复核";
+    const assessment=fixation.assessment;
+    const legacyDegree = fixation.degree === "" || fixation.degree == null ? NaN : Number(fixation.degree);
+    const position = assessment?.positions
+      ? `${assessment.positions}位`
+      : Number.isFinite(legacyDegree) ? `${fixation.motionLabel || "未注明方向"}${round(legacyDegree)}°位` : "尚未完整填写角度的位置";
+    const subject = `${side && side !== "不分侧" ? side : ""}${jointName}`;
+    const evidence = fixation.evidenceConfirmed ? "已结合被动活动、重复测量及结构资料核实强直固定" : "尚未确认强直固定的多源证据";
+    const legal = appraisalType === "injury"
+      ? (fixation.injuryDeformityConfirmed ? "并已确认属于强直畸形" : "尚未确认是否属于损伤程度标准所称强直畸形")
+      : (fixation.reviewMode && fixation.reviewMode !== "auto" ? `经鉴定人复核确认为${statusLabel}${fixation.reviewReason ? `（${fixation.reviewReason}）` : ""}` : `系统角度初判为${statusLabel}`);
+    const angleText=assessment?.text ? `${assessment.text}` : "";
+    return `${subject}强直固定于${position}；${angleText}${evidence}，${legal}。功能位角度属于临床参考，最终性质仍须结合个体功能及多源证据确认。`;
+  }
+
+  function contextualThreshold(jointId, appraisalType, result, jointStatus="limited", fixation={}) {
+    if (jointId === "hand") return appraisalType === "injury" ? injuryHandThreshold(result) : handThreshold(result);
+    if (jointId === "cervical" || jointId === "lumbar") return { level:"仅计算，不输出等级", grade:null, text:"颈、腰椎活动度丧失百分比不在本模块中自动对应鉴定等级。" };
+    if (appraisalType === "injury") {
+      if (jointStatus !== "limited" && fixation.injuryDeformityConfirmed && fixation.evidenceConfirmed) {
+        return { level:"重伤二级（直接条款）", grade:"重伤二级", basis:"5.9.2(a)", text:"已确认四肢任一大关节强直畸形，适用《人体损伤程度鉴定标准》5.9.2(a)直接条款。" };
+      }
+      const pending = jointStatus !== "limited" ? "录入的强直状态尚未同时确认多源证据及“强直畸形”，未按直接条款处理；" : "";
+      if (result >= 50) return { level:"重伤二级", grade:"重伤二级", basis:"5.9.2(a)", text:`${pending}四肢任一大关节功能丧失50%以上，达到《人体损伤程度鉴定标准》5.9.2(a)数值条款。` };
+      if (result >= 25) return { level:"轻伤一级", grade:"轻伤一级", basis:"5.9.3(a)", text:`${pending}四肢任一大关节功能丧失25%以上，达到《人体损伤程度鉴定标准》5.9.3(a)数值条款。` };
+      if (result >= 10) return { level:"轻伤二级", grade:"轻伤二级", basis:"5.9.4(a)", text:`${pending}四肢任一大关节功能丧失10%以上，达到《人体损伤程度鉴定标准》5.9.4(a)数值条款。` };
+      return { level:jointStatus !== "limited" ? "强直待核实；未达轻伤二级数值阈值" : "未达轻伤二级数值阈值", grade:null, text:`${pending}仅就本项数值，未达到四肢任一大关节功能丧失10%的相关数值阈值。` };
+    }
+    if (jointStatus === "nonfunctionalAnkylosis") {
+      if (!fixation.evidenceConfirmed) return { level:"非功能位强直待核实", grade:null, text:"已录入非功能位强直，但尚未确认被动活动、重复测量及结构资料等证据，暂不自动输出伤残等级。" };
+      if (jointId === "ankle") return { level:"八级（直接条款）", grade:"八级", basis:"5.8.6(9)", text:"一踝关节强直固定于非功能位，适用《人体损伤致残程度分级》5.8.6(9)直接条款。" };
+      return { level:"七级（直接条款）", grade:"七级", basis:"5.7.6(3)", text:"四肢任一大关节（踝关节除外）强直固定于非功能位，适用《人体损伤致残程度分级》5.7.6(3)直接条款。" };
+    }
+    if (jointId === "ankle") {
+      if (result >= 75) return { level:"九级", grade:"九级", text:"一踝关节功能丧失75%以上，达到九级相关数值条款。" };
+      if (result >= 50) return { level:"十级", grade:"十级", text:"一踝关节功能丧失50%以上，达到十级相关数值条款。" };
+      return { level:"未达十级数值阈值", grade:null, text:"仅就本项数值，未达到一踝关节功能丧失50%的相关数值阈值。" };
+    }
+    if (result >= 75) return { level:"八级", grade:"八级", text:"四肢任一大关节（踝关节除外）功能丧失75%以上，达到八级相关数值条款。" };
+    if (result >= 50) return { level:"九级", grade:"九级", text:"四肢任一大关节（踝关节除外）功能丧失50%以上，达到九级相关数值条款。" };
+    if (result >= 25) return { level:"十级", grade:"十级", text:"四肢任一大关节（踝关节除外）功能丧失25%以上，达到十级相关数值条款。" };
+    return { level:"未达十级数值阈值", grade:null, text:"仅就本项数值，未达到四肢任一大关节（踝关节除外）功能丧失25%的相关数值阈值。" };
+  }
+
+  const API = { calculateTable, calculateDirection, calculateHand, calculateInjuryHand, scoreHandSide, scoreInjuryHandSide, classifyHandRom, assessHandRomSide, handThreshold, injuryHandThreshold, assessFunctionalPosition, describeAnkylosis, contextualThreshold, tableValue, lookup, round };
+  root.JointCalculator = API;
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+  <script>
+(function () {
+  "use strict";
+  const { JOINTS, FUNCTIONAL_POSITIONS, HAND_DIGITS, INJURY_HAND_SEGMENTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS } = window.JointData;
+  const Calc = window.JointCalculator;
+  const form = document.getElementById("calculatorForm");
+  const jointSelect = document.getElementById("jointSelect");
+  const methodSelect = document.getElementById("methodSelect");
+  const referenceMode = document.getElementById("referenceMode");
+  const appraisalType = document.getElementById("appraisalType");
+  const table = document.getElementById("measurementTable");
+  const record = document.getElementById("record");
+  const historyList = document.getElementById("historyList");
+  const methodNotice = document.getElementById("methodNotice");
+  let deferredPrompt;
+  let currentRecord = null;
+
+  const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+  const valueOf = name => form.elements[name]?.value || "";
+  const formatPct = n => `${Number(n).toFixed(2)}%`;
+  const formatPoints = n => `${Number(n).toFixed(2)}分`;
+  const today = () => new Date().toISOString().slice(0, 10);
+
+  Object.entries(JOINTS).forEach(([id, joint]) => jointSelect.add(new Option(joint.name, id)));
+  form.elements.examDate.value = today();
+
+  function methodGuidance() {
+    const joint = JOINTS[jointSelect.value];
+    if (joint.kind === "hand") {
+      methodNotice.className = "notice warning";
+      methodNotice.innerHTML = appraisalType.value === "injury"
+        ? "损伤程度按附录C.7固定权重累计。活动度只作检验记录，不直接按比例折算权重。"
+        : "致残程度按附录C.8：实测活动弧自动分档，再由鉴定人确认表C-10受累组合；标准正文直接条款优先。";
+      return;
+    }
+    if (joint.directionOnly) {
+      methodNotice.className = "notice";
+      methodNotice.innerHTML = "按六个方向与正常参考值比较并取平均。";
+      return;
+    }
+    const injury = appraisalType.value === "injury";
+    const tableMethod = methodSelect.value === "table";
+    methodSelect.querySelector('option[value="direction"]').disabled = injury;
+    if (injury && !tableMethod) methodSelect.value = "table";
+    if (injury) {
+      methodNotice.className = "notice warning";
+      methodNotice.innerHTML = "伤情鉴定使用查表法：伤侧值减去健侧值。";
+    } else if (methodSelect.value === "table") {
+      methodNotice.className = "notice warning";
+      methodNotice.innerHTML = "查表法适用于活动受限并伴相关肌力下降；其他情况可选方向均分法。";
+    } else {
+      methodNotice.className = "notice";
+      methodNotice.innerHTML = "与健侧或正常参考值比较，按各方向平均。";
+    }
+  }
+
+  function handPatternOptions(group) {
+    return `<option value="">未计分</option>${group.patterns.map(pattern => `<option value="${pattern.id}">${escapeHtml(pattern.label)}</option>`).join("")}`;
+  }
+
+  function handSeverityOptions() {
+    return `<option value="">未计分</option>${Object.entries(HAND_SEVERITIES).map(([value,label]) => `<option value="${value}">${escapeHtml(label)}</option>`).join("")}`;
+  }
+
+  function handRomRows(sideId) {
+    return HAND_DIGITS.flatMap(digit => digit.joints.map(joint => `<div class="hand-rom-row">
+      <div><strong>${digit.label}</strong><small>${joint.label}</small></div>
+      <div><input type="number" min="0" max="180" step="0.1" required inputmode="decimal" name="hand.${sideId}.rom.${digit.id}.${joint.id}.actual" value="${joint.upper}" aria-label="${digit.label}${joint.label}实测活动弧"></div>
+      <div><input type="number" min="0.1" max="180" step="0.1" required inputmode="decimal" name="hand.${sideId}.rom.${digit.id}.${joint.id}.reference" value="${joint.upper}" aria-label="${digit.label}${joint.label}参考活动弧"></div>
+      <div><select name="hand.${sideId}.rom.${digit.id}.${joint.id}.status"><option value="limited">活动受限</option><option value="functionalAnkylosis">功能位强直（已确认）</option><option value="nonfunctional">非功能位强直（已确认）</option></select></div>
+      <div><input type="number" min="-180" max="180" step="0.1" inputmode="decimal" name="hand.${sideId}.rom.${digit.id}.${joint.id}.fixedDegree" placeholder="强直时填写" aria-label="${digit.label}${joint.label}强直固定角度"></div>
+      <div class="hand-band" data-band-for="hand.${sideId}.rom.${digit.id}.${joint.id}">＞3/4，不计分</div>
+    </div>`)).join("");
+  }
+
+  function handRomPanel(sideId) {
+    return `<details class="hand-details" open><summary>手指活动度（实测活动弧）</summary>
+      <div class="hand-rom-row hand-rom-header"><div>手指/关节</div><div>活动弧°</div><div>参考°</div><div>状态</div><div>固定位°</div><div>自动描述</div></div>${handRomRows(sideId)}
+    </details>`;
+  }
+
+  function disabilityHandPanel(sideId, sideLabel) {
+    return `<details class="hand-panel hand-side" ${sideId === "left" ? "open" : ""}><summary><span>${sideLabel}</span><small>点击展开或收起</small></summary>${handRomPanel(sideId)}
+      <label class="missing-score">手部分缺失分值（按图C-1人工累计）<input type="number" min="0" max="100" step="1" inputmode="numeric" name="hand.${sideId}.missingScore" value="0"></label>
+      <details class="hand-details" open><summary>表C-10计分确认</summary>
+      <div class="hand-row hand-header"><div>部位</div><div>受累组合</div><div>障碍程度</div></div>
+      ${HAND_GROUPS.map(group => `<div class="hand-row"><div><strong>${group.label}</strong></div><div><select name="hand.${sideId}.${group.id}.pattern">${handPatternOptions(group)}</select></div><div><select name="hand.${sideId}.${group.id}.severity">${handSeverityOptions()}</select></div></div>`).join("")}</details>
+    </details>`;
+  }
+
+  function injurySegmentOptions() { return `<option value="normal">正常/不计</option><option value="missing">完整缺失</option><option value="completeLoss">功能完全丧失</option><option value="partialMissing">部分实体缺失</option>`; }
+
+  function injuryHandPanel(sideId, sideLabel) {
+    return `<details class="hand-panel hand-side" ${sideId === "left" ? "open" : ""}><summary><span>${sideLabel}</span><small>点击展开或收起</small></summary>${handRomPanel(sideId)}
+      <details class="hand-details" open><summary>缺失或功能完全丧失（附录C.7）</summary>
+      <div class="injury-segment-row injury-segment-header"><div>部位</div><div>权重</div><div>状态</div><div>缺失长度</div><div>健侧同节长度</div></div>
+      ${INJURY_HAND_SEGMENTS.map(segment => `<div class="injury-segment-row"><div>${segment.label}</div><div>${segment.weight}%</div><div><select name="hand.${sideId}.segment.${segment.id}.state">${injurySegmentOptions()}</select></div><div><input type="number" min="0" step="0.1" name="hand.${sideId}.segment.${segment.id}.missingLength" placeholder="仅部分缺失"></div><div><input type="number" min="0.1" step="0.1" name="hand.${sideId}.segment.${segment.id}.referenceLength" placeholder="同单位"></div></div>`).join("")}
+      </details><label class="missing-score">掌侧感觉丧失比例（0～100%）<input type="number" min="0" max="100" step="1" name="hand.${sideId}.palmarSensoryLoss" value="0"></label>
+    </details>`;
+  }
+
+  function renderHandMeasurements() {
+    const injury=appraisalType.value === "injury";
+    table.innerHTML = `<div class="hand-workflow"><span><b>1</b>录入活动弧</span><i></i><span><b>2</b>${injury ? "选择缺失或完全丧失状态" : "确认表C-10受累组合"}</span><i></i><span><b>3</b>生成记录</span></div><div class="hand-grid">${injury ? injuryHandPanel("left","左手")+injuryHandPanel("right","右手") : disabilityHandPanel("left","左手")+disabilityHandPanel("right","右手")}</div>${injury ? `<div class="direct-clauses"><strong>直接条款核对</strong><label><input type="checkbox" name="hand.direct.bothHandsCompleteLoss">双手完全缺失或功能完全丧失</label><label><input type="checkbox" name="hand.direct.thumbContracture">一手拇指挛缩，不能对指和握物</label><label><input type="checkbox" name="hand.direct.threeFingerContracture">一手除拇指外任意三指挛缩，不能对指和握物</label></div>` : `<div class="direct-clauses"><strong>优先规则</strong><span>标准正文已有具体手部致残条款时，应优先适用，不能用表C-10替代。</span></div>`}`;
+    document.getElementById("affectedLegendText").textContent = "实测活动弧";
+    document.getElementById("referenceLegendText").textContent = injury ? "C.7固定权重" : "C.8参考活动弧";
+    document.getElementById("measurementHelp").textContent = injury
+      ? "实测度数用于检验记录和功能状态判断；部分实体缺失才按“缺失长度÷健侧同节长度×该节权重”计算。"
+      : "填写从最大伸展位到最大屈曲位的实际活动弧。参考值默认采用正常范围上限，可改为健侧实测活动弧。";
+    syncHandBands();
+  }
+
+  function renderMeasurements() {
+    const joint = JOINTS[jointSelect.value];
+    const tableOption = methodSelect.querySelector('option[value="table"]');
+    const directionOption = methodSelect.querySelector('option[value="direction"]');
+    const handOption = methodSelect.querySelector('option[value="hand"]');
+    const healthyOption = referenceMode.querySelector('option[value="healthy"]');
+    const sideSelect = form.elements.side;
+    const injuryOption = appraisalType.querySelector('option[value="injury"]');
+    if (joint.kind === "hand") {
+      tableOption.disabled = true;
+      directionOption.disabled = true;
+      handOption.disabled = false;
+      handOption.textContent = appraisalType.value === "injury" ? "手功能计权（附录C.7）" : "手功能评分（附录C.8）";
+      methodSelect.value = "hand";
+      injuryOption.disabled = false;
+      referenceMode.disabled = true;
+      sideSelect.value = "双侧分别计算";
+      sideSelect.disabled = true;
+      document.getElementById("jointNote").textContent = joint.note;
+      renderHandMeasurements();
+      methodGuidance();
+      return;
+    }
+    injuryOption.disabled = false;
+    referenceMode.disabled = false;
+    handOption.disabled = true;
+    handOption.textContent = "手功能专用";
+    if (methodSelect.value === "hand") methodSelect.value = appraisalType.value === "injury" ? "table" : "direction";
+    tableOption.disabled = Boolean(joint.directionOnly);
+    directionOption.disabled = !joint.directionOnly && appraisalType.value === "injury";
+    healthyOption.disabled = Boolean(joint.directionOnly);
+    if (joint.directionOnly) {
+      methodSelect.value = "direction";
+      if (referenceMode.value === "healthy") referenceMode.value = "standardUpper";
+      sideSelect.value = "不分侧";
+      sideSelect.disabled = true;
+    } else {
+      if (appraisalType.value === "injury") methodSelect.value = "table";
+      if (sideSelect.value === "不分侧") sideSelect.value = "左侧";
+      sideSelect.disabled = false;
+    }
+    const isTable = methodSelect.value === "table";
+    const upperOption = referenceMode.querySelector('option[value="standardUpper"]');
+    const lowerOption = referenceMode.querySelector('option[value="standardLower"]');
+    upperOption.textContent = isTable ? "正常参考基线（M5，0%）" : "正常参考值（区间上限）";
+    lowerOption.textContent = "正常参考值（区间下限）";
+    lowerOption.disabled = isTable;
+    if (isTable && referenceMode.value === "standardLower") referenceMode.value = "standardUpper";
+    const showReference = referenceMode.value === "healthy";
+    const affectedHeading = joint.directionOnly ? "实测活动度" : "伤侧活动度";
+    const referenceHeading = joint.directionOnly ? "参考活动度" : "健侧活动度";
+    document.getElementById("affectedLegendText").textContent = joint.directionOnly ? "实测输入" : "伤侧输入";
+    document.getElementById("referenceLegendText").textContent = joint.directionOnly ? "正常参考" : "健侧/对照输入";
+    document.getElementById("measurementHelp").textContent = joint.directionOnly
+      ? "单位：度（°）。输入六个方向的实测活动度；不能达到中立位时填负数。"
+      : "单位：度（°）。采用中立位0°法，不能达到中立位时填负数；查表法录入被动活动度和对应肌力。";
+    document.getElementById("jointNote").textContent = joint.note;
+    table.innerHTML = `<div class="measurement-row header"><div>运动方向</div><div>${affectedHeading}</div><div>${isTable ? "伤侧肌力" : "方法"}</div><div>${referenceHeading}</div><div>${isTable ? "健侧肌力" : "对照"}</div><div>${isTable ? "人工覆盖" : "参考区间"}</div></div>` + joint.motions.map(m => {
+      const refDegree = showReference ? m.upper : (referenceMode.value === "standardLower" ? m.lower : m.upper);
+      const force = isTable ? `<label class="force-box"><input type="checkbox" name="affected.${m.id}.forced100">伤侧按100%</label>${showReference ? `<label class="force-box"><input type="checkbox" name="reference.${m.id}.forced100">健侧按100%</label>` : ""}` : "—";
+      return `<div class="measurement-row">
+        <div class="motion-name">${escapeHtml(m.label)}${m.hint ? `<small>${escapeHtml(m.hint)}</small>` : ""}</div>
+        <div><input required min="-180" max="220" step="0.1" type="number" inputmode="decimal" name="affected.${m.id}.degree" aria-label="${joint.directionOnly ? "实测" : "伤侧"}${escapeHtml(m.label)}"></div>
+        <div>${isTable ? muscleSelect(`affected.${m.id}.muscle`) : "方向比值"}</div>
+        <div><input required min="-180" max="220" step="0.1" type="number" inputmode="decimal" name="reference.${m.id}.degree" value="${refDegree}" ${showReference ? "" : "readonly"} aria-label="对照${escapeHtml(m.label)}"></div>
+        <div>${isTable ? (showReference ? muscleSelect(`reference.${m.id}.muscle`) : "M5（正常）") : escapeHtml(referenceMode.options[referenceMode.selectedIndex].text)}</div>
+        <div>${isTable ? force : `${m.lower}°～${m.upper}°`}</div>
+      </div>`;
+    }).join("") + (joint.directionOnly ? "" : `<div class="ankylosis-card">
+      <label>关节状态<select name="jointMode"><option value="limited">活动度受限 / 常规计算</option><option value="ankylosis">强直固定（按角度自动初判）</option></select></label>
+      <div class="ankylosis-fields" hidden>
+        <div class="position-inputs">${(FUNCTIONAL_POSITIONS[jointSelect.value]?.axes || []).map(axis=>`<label>${escapeHtml(axis.label)}（°）<input type="number" min="-180" max="220" step="0.1" inputmode="decimal" name="fixation.${axis.id}" placeholder="参考 ${axis.min === axis.max ? axis.min : `${axis.min}～${axis.max}`}"></label>`).join("")}</div>
+        ${(FUNCTIONAL_POSITIONS[jointSelect.value]?.checks || []).map(check=>`<label class="check-field"><input type="checkbox" name="fixationCheck.${check.id}">${escapeHtml(check.label)}</label>`).join("")}
+        <p class="position-note">${escapeHtml(FUNCTIONAL_POSITIONS[jointSelect.value]?.note || "该关节暂无角度自动初判规则。")}</p>
+        <label>鉴定人复核<select name="positionReview"><option value="auto">采用系统角度初判</option><option value="functionalAnkylosis">复核确认为功能位</option><option value="nonfunctionalAnkylosis">复核确认为非功能位</option></select></label>
+        <label>复核说明（人工确认时必填）<input type="text" name="positionReviewReason" placeholder="例：结合职业需求、对侧关节及实际功能表现"></label>
+        <label class="check-field"><input type="checkbox" name="ankylosisEvidenceConfirmed">已结合被动活动、重复测量及结构资料确认强直固定</label>
+        ${appraisalType.value === "injury" ? `<label class="check-field"><input type="checkbox" name="injuryDeformityConfirmed">已确认属于《人体损伤程度鉴定标准》所称“强直畸形”</label>` : ""}
+        <p class="ankylosis-sentence" data-ankylosis-sentence>请填写固定角度。</p>
+      </div>
+      <small>系统按临床功能位角度作初判；多轴关节必须填写全部必需方向，边界值及特殊个案需人工复核。</small>
+    </div>`);
+    methodGuidance();
+    syncAnkylosisFields();
+  }
+
+  function muscleSelect(name) {
+    return `<select name="${name}">${Object.entries(MUSCLE_LABELS).map(([v,l]) => `<option value="${v}" ${v === "5" ? "selected" : ""}>${l}</option>`).join("")}</select>`;
+  }
+
+  function readFixationState(jointId) {
+    if (valueOf("jointMode") !== "ankylosis") return {jointStatus:"limited",fixation:{reviewMode:"auto",assessment:null,evidenceConfirmed:false,injuryDeformityConfirmed:false}};
+    const rule=FUNCTIONAL_POSITIONS[jointId];
+    const values=Object.fromEntries((rule?.axes || []).map(axis=>[axis.id,valueOf(`fixation.${axis.id}`)]));
+    const checks=Object.fromEntries((rule?.checks || []).map(check=>[check.id,Boolean(form.elements[`fixationCheck.${check.id}`]?.checked)]));
+    const assessment=Calc.assessFunctionalPosition(rule,values,checks);
+    const reviewMode=valueOf("positionReview") || "auto";
+    return {
+      jointStatus:reviewMode === "auto" ? assessment.jointStatus : reviewMode,
+      fixation:{
+        values,checks,assessment,reviewMode,reviewReason:valueOf("positionReviewReason"),
+        evidenceConfirmed:Boolean(form.elements.ankylosisEvidenceConfirmed?.checked),
+        injuryDeformityConfirmed:Boolean(form.elements.injuryDeformityConfirmed?.checked),
+        source:rule?.source || ""
+      }
+    };
+  }
+
+  function readInput() {
+    const joint = JOINTS[jointSelect.value];
+    if (joint.kind === "hand") {
+      const readRom = sideId => Object.fromEntries(HAND_DIGITS.map(digit => [digit.id,Object.fromEntries(digit.joints.map(joint => [joint.id,{
+        actual:Number(valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.actual`)),
+        reference:Number(valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.reference`)),
+        status:valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.status`) || "limited",
+        fixedDegree:valueOf(`hand.${sideId}.rom.${digit.id}.${joint.id}.fixedDegree`)
+      }]))]));
+      const readSide = sideId => appraisalType.value === "injury" ? ({
+        rom:readRom(sideId), palmarSensoryLoss:Number(valueOf(`hand.${sideId}.palmarSensoryLoss`)||0),
+        segments:Object.fromEntries(INJURY_HAND_SEGMENTS.map(segment=>[segment.id,{
+          state:valueOf(`hand.${sideId}.segment.${segment.id}.state`) || "normal",
+          missingLength:Number(valueOf(`hand.${sideId}.segment.${segment.id}.missingLength`)),
+          referenceLength:Number(valueOf(`hand.${sideId}.segment.${segment.id}.referenceLength`))
+        }]))
+      }) : ({
+        rom:readRom(sideId), missingScore: Number(valueOf(`hand.${sideId}.missingScore`) || 0),
+        groups: Object.fromEntries(HAND_GROUPS.map(group => [group.id, {
+          patternId: valueOf(`hand.${sideId}.${group.id}.pattern`),
+          severity: valueOf(`hand.${sideId}.${group.id}.severity`)
+        }]))
+      });
+      return { left: readSide("left"), right: readSide("right"), direct:{
+        bothHandsCompleteLoss:Boolean(form.elements["hand.direct.bothHandsCompleteLoss"]?.checked),
+        thumbContracture:Boolean(form.elements["hand.direct.thumbContracture"]?.checked),
+        threeFingerContracture:Boolean(form.elements["hand.direct.threeFingerContracture"]?.checked)
+      }};
+    }
+    const input = { referenceMode: referenceMode.value, affected: {}, reference: {} };
+    joint.motions.forEach(m => {
+      input.affected[m.id] = {
+        degree: Number(valueOf(`affected.${m.id}.degree`)),
+        muscle: Number(valueOf(`affected.${m.id}.muscle`) || 5),
+        forced100: Boolean(form.elements[`affected.${m.id}.forced100`]?.checked)
+      };
+      input.reference[m.id] = {
+        degree: Number(valueOf(`reference.${m.id}.degree`)),
+        muscle: Number(valueOf(`reference.${m.id}.muscle`) || 5),
+        forced100: Boolean(form.elements[`reference.${m.id}.forced100`]?.checked)
+      };
+    });
+    const fixationState=readFixationState(jointSelect.value);
+    input.jointStatus=fixationState.jointStatus;
+    input.fixation=fixationState.fixation;
+    return input;
+  }
+
+  function validateInput(input) {
+    const joint = JOINTS[jointSelect.value];
+    if (joint.kind === "hand") {
+      for (const [label, side] of [["左手",input.left],["右手",input.right]]) {
+        for (const digit of HAND_DIGITS) for (const handJoint of digit.joints) {
+          const item=side.rom[digit.id][handJoint.id];
+          if (!Number.isFinite(item.actual) || item.actual < 0 || item.actual > 180 || !Number.isFinite(item.reference) || item.reference <= 0 || item.reference > 180) throw new Error(`${label}${digit.label}${handJoint.label}应填写0～180°的实测活动弧和大于0的参考值`);
+          if (item.status !== "limited") {
+            if (item.actual > 5) throw new Error(`${label}${digit.label}${handJoint.label}已选择强直，但活动弧大于5°；请核对状态或测量值`);
+            const fixed = item.fixedDegree === "" ? NaN : Number(item.fixedDegree);
+            if (!Number.isFinite(fixed) || fixed < -180 || fixed > 180) throw new Error(`${label}${digit.label}${handJoint.label}选择强直时须填写-180～180°的固定角度`);
+          }
+        }
+        if (appraisalType.value === "injury") {
+          if (!Number.isFinite(side.palmarSensoryLoss) || side.palmarSensoryLoss < 0 || side.palmarSensoryLoss > 100) throw new Error(`${label}掌侧感觉丧失比例应为0～100%`);
+        } else {
+          if (!Number.isFinite(side.missingScore) || side.missingScore < 0 || side.missingScore > 100) throw new Error(`${label}缺失分值应填写0～100之间的有效分值`);
+          for (const group of HAND_GROUPS) {
+            const selected=side.groups[group.id];
+            if (Boolean(selected.patternId)!==Boolean(selected.severity)) throw new Error(`${label}${group.label}的受累组合与障碍程度应同时选择`);
+          }
+        }
+      }
+      return;
+    }
+    for (const m of joint.motions) {
+      const values = [input.affected[m.id].degree, input.reference[m.id].degree];
+      if (values.some(v => !Number.isFinite(v) || v < -180 || v > 220)) throw new Error(`${m.label}应填写-180～220之间的有效角度`);
+    }
+    if (joint.axisMode) {
+      if (input.affected.flexion.degree + input.affected.extension.degree < 0) throw new Error("伤侧屈伸活动弧不能为负数");
+      if (input.reference.flexion.degree + input.reference.extension.degree < 0) throw new Error("对照侧屈伸活动弧不能为负数");
+    }
+    if (valueOf("jointMode") === "ankylosis") {
+      const bad=input.fixation.assessment.rows.find(row=>row.value != null && (row.value < -180 || row.value > 220));
+      if (bad) throw new Error(`${bad.label}应填写-180～220°的有效角度`);
+      if (input.fixation.reviewMode !== "auto" && !input.fixation.reviewReason.trim()) throw new Error("人工改变或确认功能位性质时，请填写复核说明");
+    }
+  }
+
+  function buildSnapshot(result, input) {
+    const jointId = jointSelect.value;
+    const isHand = JOINTS[jointId].kind === "hand";
+    const jointStatusLabels = { limited:"活动度受限/常规计算", functionalAnkylosis:"功能位强直（角度初判/复核）", nonfunctionalAnkylosis:"非功能位强直（角度初判/复核）", ankylosisPending:"强直固定，功能位性质待复核" };
+    const meta = {
+      caseNumber: valueOf("caseNumber") || "未填写", subjectName: valueOf("subjectName") || "未填写",
+      examDate: valueOf("examDate") || "未填写", examiner: valueOf("examiner") || "未填写",
+      appraisalType: appraisalType.value, appraisalLabel: appraisalType.options[appraisalType.selectedIndex].text,
+      side: valueOf("side"), jointId, jointName: JOINTS[jointId].name,
+      method: methodSelect.value, methodLabel: methodSelect.options[methodSelect.selectedIndex].text,
+      referenceMode: isHand ? (appraisalType.value === "injury" ? "injuryC7" : "disabilityC8") : referenceMode.value, referenceLabel: isHand ? (appraisalType.value === "injury" ? "附录C.7固定权重" : "附录C.8评分") : referenceMode.options[referenceMode.selectedIndex].text,
+      jointStatus: isHand ? "" : input.jointStatus, jointStatusLabel: isHand ? "" : jointStatusLabels[input.jointStatus],
+      evidence: "", notes: ""
+    };
+    return {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
+      createdAt: new Date().toISOString(), ruleVersion: "1.8.0", meta, input, result,
+      threshold: result.method === "handInjury" ? Calc.injuryHandThreshold(result.result,input.direct) : Calc.contextualThreshold(jointId, meta.appraisalType, result.result, input.jointStatus, input.fixation)
+    };
+  }
+
+  function handCalculationRows(snapshot) {
+    return [["左手",snapshot.result.left],["右手",snapshot.result.right]].flatMap(([sideLabel,side]) => {
+      const rows = [`<tr><td>${sideLabel}</td><td>手部分缺失</td><td>按图C-1人工累计</td><td>—</td><td>${formatPoints(side.missingScore)}</td></tr>`];
+      side.rows.filter(row => row.patternId).forEach(row => rows.push(`<tr><td>${sideLabel}</td><td>${escapeHtml(row.groupLabel)}</td><td>${escapeHtml(row.patternLabel)}</td><td>${escapeHtml(HAND_SEVERITIES[row.severity] || "未选择")}</td><td>${formatPoints(row.score)}</td></tr>`));
+      rows.push(`<tr class="subtotal-row"><td>${sideLabel}</td><td colspan="3">单手合计（缺失分值+功能障碍分值，封顶100分）</td><td>${formatPoints(side.subtotal)}</td></tr>`);
+      return rows;
+    }).join("");
+  }
+
+  function handRomCalculationRows(snapshot) {
+    return [["左手",snapshot.result.left],["右手",snapshot.result.right]].flatMap(([sideLabel,side]) => side.romRows.map(row => `<tr><td>${sideLabel}</td><td>${row.digitLabel} ${row.jointLabel}</td><td>${row.actual}°</td><td>${row.reference}°</td><td>${(row.ratio*100).toFixed(2)}%</td><td>${escapeHtml(row.label)}</td></tr>`)).join("");
+  }
+
+  function injuryHandCalculationRows(snapshot) {
+    return [["左手",snapshot.result.left],["右手",snapshot.result.right]].flatMap(([sideLabel,side]) => {
+      const rows=side.rows.filter(row=>row.state!=="normal").map(row=>`<tr><td>${sideLabel}</td><td>${row.label}</td><td>${row.weight}%</td><td>${row.state === "missing" ? "完整缺失" : row.state === "completeLoss" ? "功能完全丧失" : "部分实体缺失"}</td><td>${escapeHtml(row.formula)}</td><td>${formatPct(row.score)}</td></tr>`);
+      if(side.palmarSensoryLoss>0) rows.push(`<tr><td>${sideLabel}</td><td>掌侧感觉丧失</td><td>手功能权重的50%</td><td>${side.palmarSensoryLoss}%</td><td>${side.palmarSensoryLoss}%×50%</td><td>${formatPct(side.sensoryScore)}</td></tr>`);
+      rows.push(`<tr class="subtotal-row"><td>${sideLabel}</td><td colspan="4">小计</td><td>${formatPct(side.subtotal)}</td></tr>`); return rows;
+    }).join("");
+  }
+
+  function calculationRows(snapshot) {
+    const { result, meta } = snapshot;
+    if (result.method === "direction") return result.rows.map(row => `<tr><td>${escapeHtml(row.label)}</td><td>${row.affected}°</td><td>${row.reference}°</td><td>${formatPct(row.loss)}</td><td>—</td></tr>`).join("");
+    const refById = Object.fromEntries(result.referenceRows.map(r => [r.motion.id, r]));
+    return result.affectedRows.map(row => {
+      const ref = refById[row.motion.id];
+      const muscle = snapshot.input.affected[row.motion.id].muscle;
+      const refMuscle = meta.referenceMode === "healthy" ? snapshot.input.reference[row.motion.id].muscle : 5;
+      const refText = meta.referenceMode === "healthy"
+        ? `${ref.converted}° / ${MUSCLE_LABELS[refMuscle]} / ${escapeHtml(ref.band)} → ${formatPct(ref.loss)}`
+        : `正常参考 / M5 / ${escapeHtml(ref.band)} → 0.00%`;
+      return `<tr><td>${escapeHtml(row.motion.label)}</td><td>${snapshot.input.affected[row.motion.id].degree}°${row.converted !== snapshot.input.affected[row.motion.id].degree ? `（换算${row.converted}°）` : ""}</td><td>${MUSCLE_LABELS[muscle]}</td><td>${escapeHtml(row.band)} → ${formatPct(row.loss)}</td><td>${refText}</td></tr>`;
+    }).join("");
+  }
+
+  function functionalPositionRows(fixation) {
+    return (fixation?.assessment?.rows || []).map(row=>{
+      const result=row.state === "inside" ? "范围内" : row.state === "boundary" ? "边界复核区" : row.state === "outside" ? "范围外" : "未填写";
+      return `<tr><td>${escapeHtml(row.label)}</td><td>${row.value == null ? "—" : `${row.value}°`}</td><td>${escapeHtml(row.range)}</td><td>${result}</td></tr>`;
+    }).join("");
+  }
+
+  function renderRecord(snapshot) {
+    const { meta, result, threshold } = snapshot;
+    const isHand = result.method === "handDisability" || result.method === "handInjury";
+    const isInjuryHand = result.method === "handInjury";
+    const basis = isInjuryHand
+      ? "《人体损伤程度鉴定标准》附录C.7；SF/T 0111—2021 7.11.7.2及表A.3"
+      : result.method === "handDisability" ? "《人体损伤致残程度分级》附录C.8、图C-1及表C-10；SF/T 0111—2021 7.11.7.2及表A.3"
+      : JOINTS[meta.jointId].directionOnly
+      ? "SF/T 0111—2021 附录A.6；方向均分法"
+      : meta.appraisalType === "injury"
+        ? "《人体损伤程度鉴定标准》附录C.6；SF/T 0096—2021 第7章及附录B"
+        : "《人体损伤致残程度分级》附录C.7；SF/T 0096—2021 第7章及附录B";
+    const resultLabel = result.method === "handDisability" ? "手功能丧失分值" : "功能丧失百分比";
+    const resultText = result.method === "handDisability" ? formatPoints(result.result) : formatPct(result.result);
+    const detailTable = result.method === "handDisability"
+      ? `<h4>活动度分档</h4><table class="calc-table"><thead><tr><th>侧别</th><th>关节</th><th>实测活动弧</th><th>参考活动弧</th><th>比例</th><th>自动分档</th></tr></thead><tbody>${handRomCalculationRows(snapshot)}</tbody></table><h4>表C-10确认计分</h4><table class="calc-table"><thead><tr><th>侧别</th><th>部位</th><th>受累范围/缺失</th><th>障碍程度</th><th>分值</th></tr></thead><tbody>${handCalculationRows(snapshot)}</tbody></table>`
+      : isInjuryHand ? `<h4>活动度检验记录（不直接折算C.7权重）</h4><table class="calc-table"><thead><tr><th>侧别</th><th>关节</th><th>实测活动弧</th><th>参考活动弧</th><th>比例</th><th>观察</th></tr></thead><tbody>${handRomCalculationRows(snapshot)}</tbody></table><h4>附录C.7计权</h4><table class="calc-table"><thead><tr><th>侧别</th><th>部位</th><th>固定权重</th><th>状态</th><th>公式</th><th>计入值</th></tr></thead><tbody>${injuryHandCalculationRows(snapshot)}</tbody></table>`
+      : `<table class="calc-table"><thead><tr><th>方向</th><th>${JOINTS[meta.jointId].directionOnly ? "实测活动度" : "伤侧活动度"}</th><th>${result.method === "table" ? "伤侧肌力" : "对照值"}</th><th>${result.method === "table" ? "伤侧查表" : "方向丧失率"}</th><th>${result.method === "table" ? "对照侧" : "备注"}</th></tr></thead><tbody>${calculationRows(snapshot)}</tbody></table>`;
+    const summary = result.method === "handDisability"
+      ? `左手 ${formatPoints(result.left.subtotal)}；右手 ${formatPoints(result.right.subtotal)}<br>${escapeHtml(result.formula)}`
+      : isInjuryHand ? `${escapeHtml(result.formula)}<br><small>活动度比例仅作检验记录，未线性折算为指节权重。</small>`
+      : `${escapeHtml(result.formula)}<br>${result.method === "table" ? `伤侧 ${formatPct(result.affectedTotal)} − 对照侧 ${formatPct(result.referenceTotal)} = ` : "计算结果 = "}<strong>${formatPct(result.result)}</strong>`;
+    record.hidden = false;
+    const ankylosisText = !isHand && meta.jointStatus !== "limited"
+      ? Calc.describeAnkylosis(meta.jointName, meta.side, meta.jointStatus, snapshot.input.fixation, meta.appraisalType)
+      : "";
+    record.innerHTML = `<div class="record-actions no-print"><button class="button ghost" data-action="copy">复制计算意见</button><button class="button ghost" data-action="download">导出JSON记录</button><button class="button secondary" data-action="save">保存至本机</button><button class="button primary" data-action="print">打印 / 另存PDF</button></div>
+      <div class="record-header"><div><h2>关节功能丧失计算记录</h2></div><div class="record-number">记录ID<br>${escapeHtml(snapshot.id)}</div></div>
+      <div class="record-meta">
+        ${metaCell("案件编号",meta.caseNumber)}${metaCell("被鉴定人",meta.subjectName)}${metaCell("检验日期",meta.examDate)}${metaCell("记录人",meta.examiner)}
+        ${metaCell("鉴定目的",meta.appraisalLabel)}${metaCell("部位",isHand ? "双手分别记录" : (meta.side === "不分侧" ? meta.jointName : `${meta.side} ${meta.jointName}`))}${metaCell("计算方法",isInjuryHand ? "损伤程度手功能计权" : meta.methodLabel)}${metaCell(isHand ? "规则" : "对照依据",isInjuryHand ? "附录C.7" : meta.referenceLabel)}
+        ${isHand ? "" : metaCell("关节状态",meta.jointStatusLabel)}
+      </div>
+      <div class="result-banner"><div><small>${resultLabel}</small><div class="result-value">${resultText}</div></div><div><strong>${escapeHtml(threshold.level)}</strong><p>${escapeHtml(threshold.text)}</p><small>仅为数值或直接条款提示，不自动形成损伤程度或致残等级结论。</small></div></div>
+      <p class="record-basis">依据：${escapeHtml(basis)}</p>
+      ${ankylosisText ? `<h3>强直固定与功能位初判</h3><div class="finding-box">${escapeHtml(ankylosisText)}</div>
+      <table class="calc-table"><thead><tr><th>固定方向</th><th>实测角度</th><th>临床功能位参考</th><th>系统结果</th></tr></thead><tbody>${functionalPositionRows(snapshot.input.fixation)}</tbody></table>
+      <p class="record-basis">功能位角度参考：${escapeHtml(snapshot.input.fixation.source || "临床资料")}；±5°仅为本系统的边界复核设置，并非法定容差。</p>` : ""}
+      <h3>计算明细</h3>${detailTable}
+      <h3>汇总</h3><div class="formula-box">${summary}</div>
+      <h3>辅助意见</h3><p>${escapeHtml(opinionText(snapshot))}</p>
+      <div class="record-disclaimer">本记录仅供辅助计算，正式结论由鉴定人综合判断。</div>`;
+    document.getElementById("liveSummary").innerHTML = `<span class="eyebrow">CALCULATED</span><h3>${resultText}</h3><p>${isHand ? "双手" : escapeHtml(meta.side)} ${escapeHtml(meta.jointName)} · ${isInjuryHand ? "附录C.7" : escapeHtml(meta.methodLabel)}<br>${escapeHtml(threshold.level)}</p>`;
+    record.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function metaCell(label, value) { return `<div><small>${label}</small><strong>${escapeHtml(value)}</strong></div>`; }
+  function opinionText(s) {
+    if (s.result.method === "handDisability") return `按附录C.8确认计分后，手功能丧失最终加权分值为${formatPoints(s.result.result)}（左手${formatPoints(s.result.left.subtotal)}，右手${formatPoints(s.result.right.subtotal)}）。${s.threshold.text}`;
+    if (s.result.method === "handInjury") return `按附录C.7计权，双手累计手功能丧失值为${formatPct(s.result.result)}（左手${formatPct(s.result.left.subtotal)}，右手${formatPct(s.result.right.subtotal)}）。实测活动度未直接线性折算权重。${s.threshold.text}`;
+    const part = s.meta.side === "不分侧" ? s.meta.jointName : `${s.meta.side}${s.meta.jointName}`;
+    const fixationText = s.meta.jointStatus !== "limited" ? `${Calc.describeAnkylosis(s.meta.jointName, s.meta.side, s.meta.jointStatus, s.input.fixation, s.meta.appraisalType)} ` : "";
+    return `${fixationText}${part}功能丧失值为${formatPct(s.result.result)}。${s.threshold.text}`;
+  }
+
+  function saveHistory(snapshot) {
+    const items = JSON.parse(localStorage.getItem("jointLossRecords") || "[]");
+    const next = [snapshot, ...items.filter(i => i.id !== snapshot.id)].slice(0, 20);
+    localStorage.setItem("jointLossRecords", JSON.stringify(next));
+    renderHistory(); toast("记录已保存至本机");
+  }
+
+  function renderHistory() {
+    const items = JSON.parse(localStorage.getItem("jointLossRecords") || "[]");
+    historyList.innerHTML = items.length ? items.slice(0, 8).map(i => `<button class="history-item" data-id="${i.id}"><strong>${escapeHtml(i.meta.caseNumber)} · ${escapeHtml(i.meta.jointName)} ${i.result.method === "hand" || i.result.method === "handDisability" ? formatPoints(i.result.result) : formatPct(i.result.result)}</strong><span>${new Date(i.createdAt).toLocaleString("zh-CN")}</span></button>`).join("") : '<p class="muted">尚无已保存记录</p>';
+  }
+
+  function downloadSnapshot(snapshot) {
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], {type:"application/json;charset=utf-8"});
+    const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = `${snapshot.meta.caseNumber.replace(/[\\/:*?"<>|]/g,"_")}_${snapshot.meta.jointName}_辅助计算记录.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function copyOpinion() {
+    const text = opinionText(currentRecord);
+    try { await navigator.clipboard.writeText(text); } catch { const ta=document.createElement("textarea");ta.value=text;document.body.append(ta);ta.select();document.execCommand("copy");ta.remove(); }
+    toast("计算意见已复制");
+  }
+  function toast(message) { const el=document.getElementById("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800); }
+
+  function syncAnkylosisFields() {
+    const mode = valueOf("jointMode");
+    const fields = table.querySelector(".ankylosis-fields");
+    if (!fields) return;
+    fields.hidden = mode !== "ankylosis";
+    if (fields.hidden) return;
+    const joint = JOINTS[jointSelect.value];
+    const {jointStatus:status,fixation}=readFixationState(jointSelect.value);
+    const output = fields.querySelector("[data-ankylosis-sentence]");
+    output.textContent = Calc.describeAnkylosis(joint.name, valueOf("side"), status, fixation, appraisalType.value);
+    output.dataset.confirmed = fixation.evidenceConfirmed ? "true" : "false";
+    output.dataset.state = fixation.assessment?.state || "insufficient";
+  }
+
+  function syncHandBands() {
+    if (JOINTS[jointSelect.value].kind !== "hand") return;
+    document.querySelectorAll("[data-band-for]").forEach(output => {
+      const base=output.dataset.bandFor;
+      const actual=Number(valueOf(`${base}.actual`)), reference=Number(valueOf(`${base}.reference`));
+      const status=valueOf(`${base}.status`) || "limited";
+      const fixedDegree=valueOf(`${base}.fixedDegree`);
+      try {
+        const band=Calc.classifyHandRom(actual,reference,status,fixedDegree);
+        output.textContent=appraisalType.value === "injury" ? `${(band.ratio*100).toFixed(1)}% · 检验记录（不计C.7权重）` : `${(band.ratio*100).toFixed(1)}% · ${band.label}`;
+        output.dataset.severity=band.severity;
+      } catch { output.textContent="请填写有效参考值"; }
+    });
+  }
+
+  [jointSelect, methodSelect, referenceMode, appraisalType].forEach(el => el.addEventListener("change", renderMeasurements));
+  table.addEventListener("input",() => { syncHandBands(); syncAnkylosisFields(); });
+  table.addEventListener("change",() => { syncHandBands(); syncAnkylosisFields(); });
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    try {
+      if (!form.reportValidity()) return;
+      const input = readInput(); validateInput(input);
+      const result = methodSelect.value === "hand"
+        ? appraisalType.value === "injury" ? Calc.calculateInjuryHand(input,INJURY_HAND_SEGMENTS,HAND_DIGITS) : Calc.calculateHand(input, HAND_GROUPS,HAND_DIGITS)
+        : methodSelect.value === "table"
+          ? Calc.calculateTable(JOINTS[jointSelect.value], input)
+          : Calc.calculateDirection(JOINTS[jointSelect.value], input);
+      currentRecord = buildSnapshot(result, input); renderRecord(currentRecord);
+    } catch (error) { toast(error.message); }
+  });
+  form.addEventListener("reset", () => setTimeout(() => { form.elements.examDate.value=today(); record.hidden=true; currentRecord=null; renderMeasurements(); }, 0));
+  record.addEventListener("click", event => {
+    const action = event.target.dataset.action; if (!action || !currentRecord) return;
+    if (action === "copy") copyOpinion();
+    if (action === "download") downloadSnapshot(currentRecord);
+    if (action === "save") saveHistory(currentRecord);
+    if (action === "print") window.print();
+  });
+  historyList.addEventListener("click", event => {
+    const button = event.target.closest("[data-id]"); if (!button) return;
+    const item = JSON.parse(localStorage.getItem("jointLossRecords") || "[]").find(i => i.id === button.dataset.id);
+    if (item) { currentRecord=item; renderRecord(item); }
+  });
+
+  window.addEventListener("beforeinstallprompt", event => { event.preventDefault(); deferredPrompt=event; document.getElementById("installButton").hidden=false; });
+  document.getElementById("installButton").addEventListener("click", async () => { if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;} });
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("./sw.js").catch(() => {});
+  renderMeasurements(); renderHistory();
+})();
+
+</script>
+</body>
+</html>

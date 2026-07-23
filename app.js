@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  const { JOINTS, HAND_DIGITS, INJURY_HAND_SEGMENTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS } = window.JointData;
+  const { JOINTS, FUNCTIONAL_POSITIONS, HAND_DIGITS, INJURY_HAND_SEGMENTS, HAND_GROUPS, HAND_SEVERITIES, MUSCLE_LABELS } = window.JointData;
   const Calc = window.JointCalculator;
   const form = document.getElementById("calculatorForm");
   const jointSelect = document.getElementById("jointSelect");
@@ -178,15 +178,18 @@
         <div>${isTable ? force : `${m.lower}°～${m.upper}°`}</div>
       </div>`;
     }).join("") + (joint.directionOnly ? "" : `<div class="ankylosis-card">
-      <label>关节状态<select name="jointStatus"><option value="limited">活动度受限 / 常规计算</option><option value="functionalAnkylosis">功能位强直固定</option><option value="nonfunctionalAnkylosis">非功能位强直固定</option></select></label>
+      <label>关节状态<select name="jointMode"><option value="limited">活动度受限 / 常规计算</option><option value="ankylosis">强直固定（按角度自动初判）</option></select></label>
       <div class="ankylosis-fields" hidden>
-        <label>固定方向<select name="fixationMotion">${joint.motions.map(m => `<option value="${m.id}">${escapeHtml(m.label)}</option>`).join("")}</select></label>
-        <label>固定角度（°）<input type="number" min="-180" max="220" step="0.1" inputmode="decimal" name="fixationDegree" placeholder="例：30"></label>
+        <div class="position-inputs">${(FUNCTIONAL_POSITIONS[jointSelect.value]?.axes || []).map(axis=>`<label>${escapeHtml(axis.label)}（°）<input type="number" min="-180" max="220" step="0.1" inputmode="decimal" name="fixation.${axis.id}" placeholder="参考 ${axis.min === axis.max ? axis.min : `${axis.min}～${axis.max}`}"></label>`).join("")}</div>
+        ${(FUNCTIONAL_POSITIONS[jointSelect.value]?.checks || []).map(check=>`<label class="check-field"><input type="checkbox" name="fixationCheck.${check.id}">${escapeHtml(check.label)}</label>`).join("")}
+        <p class="position-note">${escapeHtml(FUNCTIONAL_POSITIONS[jointSelect.value]?.note || "该关节暂无角度自动初判规则。")}</p>
+        <label>鉴定人复核<select name="positionReview"><option value="auto">采用系统角度初判</option><option value="functionalAnkylosis">复核确认为功能位</option><option value="nonfunctionalAnkylosis">复核确认为非功能位</option></select></label>
+        <label>复核说明（人工确认时必填）<input type="text" name="positionReviewReason" placeholder="例：结合职业需求、对侧关节及实际功能表现"></label>
         <label class="check-field"><input type="checkbox" name="ankylosisEvidenceConfirmed">已结合被动活动、重复测量及结构资料确认强直固定</label>
         ${appraisalType.value === "injury" ? `<label class="check-field"><input type="checkbox" name="injuryDeformityConfirmed">已确认属于《人体损伤程度鉴定标准》所称“强直畸形”</label>` : ""}
-        <p class="ankylosis-sentence" data-ankylosis-sentence>请选择状态并填写固定角度。</p>
+        <p class="ankylosis-sentence" data-ankylosis-sentence>请填写固定角度。</p>
       </div>
-      <small>角度用于描述固定位置；功能位性质由鉴定人依据功能影响和多源证据确认，系统不按单一角度推定。</small>
+      <small>系统按临床功能位角度作初判；多轴关节必须填写全部必需方向，边界值及特殊个案需人工复核。</small>
     </div>`);
     methodGuidance();
     syncAnkylosisFields();
@@ -194,6 +197,24 @@
 
   function muscleSelect(name) {
     return `<select name="${name}">${Object.entries(MUSCLE_LABELS).map(([v,l]) => `<option value="${v}" ${v === "5" ? "selected" : ""}>${l}</option>`).join("")}</select>`;
+  }
+
+  function readFixationState(jointId) {
+    if (valueOf("jointMode") !== "ankylosis") return {jointStatus:"limited",fixation:{reviewMode:"auto",assessment:null,evidenceConfirmed:false,injuryDeformityConfirmed:false}};
+    const rule=FUNCTIONAL_POSITIONS[jointId];
+    const values=Object.fromEntries((rule?.axes || []).map(axis=>[axis.id,valueOf(`fixation.${axis.id}`)]));
+    const checks=Object.fromEntries((rule?.checks || []).map(check=>[check.id,Boolean(form.elements[`fixationCheck.${check.id}`]?.checked)]));
+    const assessment=Calc.assessFunctionalPosition(rule,values,checks);
+    const reviewMode=valueOf("positionReview") || "auto";
+    return {
+      jointStatus:reviewMode === "auto" ? assessment.jointStatus : reviewMode,
+      fixation:{
+        values,checks,assessment,reviewMode,reviewReason:valueOf("positionReviewReason"),
+        evidenceConfirmed:Boolean(form.elements.ankylosisEvidenceConfirmed?.checked),
+        injuryDeformityConfirmed:Boolean(form.elements.injuryDeformityConfirmed?.checked),
+        source:rule?.source || ""
+      }
+    };
   }
 
   function readInput() {
@@ -238,16 +259,9 @@
         forced100: Boolean(form.elements[`reference.${m.id}.forced100`]?.checked)
       };
     });
-    input.jointStatus = valueOf("jointStatus") || "limited";
-    const fixationMotion = valueOf("fixationMotion");
-    const motion = joint.motions.find(item => item.id === fixationMotion);
-    input.fixation = {
-      motionId: fixationMotion,
-      motionLabel: motion?.label || "",
-      degree: valueOf("fixationDegree"),
-      evidenceConfirmed: Boolean(form.elements.ankylosisEvidenceConfirmed?.checked),
-      injuryDeformityConfirmed: Boolean(form.elements.injuryDeformityConfirmed?.checked)
-    };
+    const fixationState=readFixationState(jointSelect.value);
+    input.jointStatus=fixationState.jointStatus;
+    input.fixation=fixationState.fixation;
     return input;
   }
 
@@ -284,16 +298,17 @@
       if (input.affected.flexion.degree + input.affected.extension.degree < 0) throw new Error("伤侧屈伸活动弧不能为负数");
       if (input.reference.flexion.degree + input.reference.extension.degree < 0) throw new Error("对照侧屈伸活动弧不能为负数");
     }
-    if (input.jointStatus !== "limited") {
-      const degree = input.fixation.degree === "" ? NaN : Number(input.fixation.degree);
-      if (!input.fixation.motionId || !Number.isFinite(degree) || degree < -180 || degree > 220) throw new Error("选择强直固定时，须填写固定方向和-180～220°的固定角度");
+    if (valueOf("jointMode") === "ankylosis") {
+      const bad=input.fixation.assessment.rows.find(row=>row.value != null && (row.value < -180 || row.value > 220));
+      if (bad) throw new Error(`${bad.label}应填写-180～220°的有效角度`);
+      if (input.fixation.reviewMode !== "auto" && !input.fixation.reviewReason.trim()) throw new Error("人工改变或确认功能位性质时，请填写复核说明");
     }
   }
 
   function buildSnapshot(result, input) {
     const jointId = jointSelect.value;
     const isHand = JOINTS[jointId].kind === "hand";
-    const jointStatusLabels = { limited:"活动度受限/常规计算", functionalAnkylosis:"功能位强直", nonfunctionalAnkylosis:"非功能位强直" };
+    const jointStatusLabels = { limited:"活动度受限/常规计算", functionalAnkylosis:"功能位强直（角度初判/复核）", nonfunctionalAnkylosis:"非功能位强直（角度初判/复核）", ankylosisPending:"强直固定，功能位性质待复核" };
     const meta = {
       caseNumber: valueOf("caseNumber") || "未填写", subjectName: valueOf("subjectName") || "未填写",
       examDate: valueOf("examDate") || "未填写", examiner: valueOf("examiner") || "未填写",
@@ -306,7 +321,7 @@
     };
     return {
       id: `${Date.now()}-${Math.random().toString(16).slice(2,8)}`,
-      createdAt: new Date().toISOString(), ruleVersion: "1.7.0", meta, input, result,
+      createdAt: new Date().toISOString(), ruleVersion: "1.8.0", meta, input, result,
       threshold: result.method === "handInjury" ? Calc.injuryHandThreshold(result.result,input.direct) : Calc.contextualThreshold(jointId, meta.appraisalType, result.result, input.jointStatus, input.fixation)
     };
   }
@@ -347,6 +362,13 @@
     }).join("");
   }
 
+  function functionalPositionRows(fixation) {
+    return (fixation?.assessment?.rows || []).map(row=>{
+      const result=row.state === "inside" ? "范围内" : row.state === "boundary" ? "边界复核区" : row.state === "outside" ? "范围外" : "未填写";
+      return `<tr><td>${escapeHtml(row.label)}</td><td>${row.value == null ? "—" : `${row.value}°`}</td><td>${escapeHtml(row.range)}</td><td>${result}</td></tr>`;
+    }).join("");
+  }
+
   function renderRecord(snapshot) {
     const { meta, result, threshold } = snapshot;
     const isHand = result.method === "handDisability" || result.method === "handInjury";
@@ -382,7 +404,9 @@
       </div>
       <div class="result-banner"><div><small>${resultLabel}</small><div class="result-value">${resultText}</div></div><div><strong>${escapeHtml(threshold.level)}</strong><p>${escapeHtml(threshold.text)}</p><small>仅为数值或直接条款提示，不自动形成损伤程度或致残等级结论。</small></div></div>
       <p class="record-basis">依据：${escapeHtml(basis)}</p>
-      ${ankylosisText ? `<h3>强直固定描述</h3><div class="finding-box">${escapeHtml(ankylosisText)}</div>` : ""}
+      ${ankylosisText ? `<h3>强直固定与功能位初判</h3><div class="finding-box">${escapeHtml(ankylosisText)}</div>
+      <table class="calc-table"><thead><tr><th>固定方向</th><th>实测角度</th><th>临床功能位参考</th><th>系统结果</th></tr></thead><tbody>${functionalPositionRows(snapshot.input.fixation)}</tbody></table>
+      <p class="record-basis">功能位角度参考：${escapeHtml(snapshot.input.fixation.source || "临床资料")}；±5°仅为本系统的边界复核设置，并非法定容差。</p>` : ""}
       <h3>计算明细</h3>${detailTable}
       <h3>汇总</h3><div class="formula-box">${summary}</div>
       <h3>辅助意见</h3><p>${escapeHtml(opinionText(snapshot))}</p>
@@ -427,23 +451,17 @@
   function toast(message) { const el=document.getElementById("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),1800); }
 
   function syncAnkylosisFields() {
-    const status = valueOf("jointStatus");
+    const mode = valueOf("jointMode");
     const fields = table.querySelector(".ankylosis-fields");
     if (!fields) return;
-    fields.hidden = !status || status === "limited";
+    fields.hidden = mode !== "ankylosis";
     if (fields.hidden) return;
     const joint = JOINTS[jointSelect.value];
-    const motionId = valueOf("fixationMotion");
-    const motion = joint.motions.find(item => item.id === motionId);
-    const fixation = {
-      motionLabel: motion?.label || "",
-      degree: valueOf("fixationDegree"),
-      evidenceConfirmed: Boolean(form.elements.ankylosisEvidenceConfirmed?.checked),
-      injuryDeformityConfirmed: Boolean(form.elements.injuryDeformityConfirmed?.checked)
-    };
+    const {jointStatus:status,fixation}=readFixationState(jointSelect.value);
     const output = fields.querySelector("[data-ankylosis-sentence]");
     output.textContent = Calc.describeAnkylosis(joint.name, valueOf("side"), status, fixation, appraisalType.value);
     output.dataset.confirmed = fixation.evidenceConfirmed ? "true" : "false";
+    output.dataset.state = fixation.assessment?.state || "insufficient";
   }
 
   function syncHandBands() {
